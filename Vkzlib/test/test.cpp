@@ -223,7 +223,7 @@ namespace Test::vkz::mpl {
 
 		TEST_F(OverrideMemberParsingTest, TestMemberFunctionPointerParsing) {
 
-			// Test `MemberFunctionPointer`
+			// `MemberFunctionPointer`
 #define EXPECT_MP(BOOL, TypeName) EXPECT_TEMPLATE(BOOL, ParsableType::MemberFunctionPointer, TypeName)
 			EXPECT_MP(TRUE, MemberF);
 			EXPECT_MP(TRUE, MemberG);
@@ -246,7 +246,7 @@ namespace Test::vkz::mpl {
 			EXPECT_MP(FALSE, VariadicPtrFun);
 #undef EXPECT_MP
 
-			// Test `MemberFunctionPointer && Normal`
+			// `MemberFunctionPointer && Normal`
 #define EXPECT_NORMAL_MFP(BOOL, TypeName) EXPECT_TEMPLATE(BOOL,	NormalMFP, TypeName)
 			EXPECT_NORMAL_MFP(TRUE, MemberF);
 			EXPECT_NORMAL_MFP(TRUE, Callable::CallMemberType);
@@ -256,7 +256,7 @@ namespace Test::vkz::mpl {
 			EXPECT_NORMAL_MFP(FALSE, Callable::VariadicMemberType);
 #undef EXPECT_NORMAL_MFP
 
-			// Test `result_of_t` for `MemberFunctionPointer`
+			// `result_of_t` for `MemberFunctionPointer`
 			using ResF = result_of_t<MemberF>;
 			using ResG = result_of_t<MemberG>;
 			using ResH = result_of_t<MemberH>;
@@ -270,7 +270,7 @@ namespace Test::vkz::mpl {
 			EXPECT_TEMPLATE(TRUE, Homogeneous, ResF, ResG, ResH, ResI, ResJ, ResOverloadedJ, ResK);
 			EXPECT_TEMPLATE(TRUE, Homogeneous, ResNVar, ResVar);
 
-			// Test `args_of_t` for `MemberFunctionPointer`
+			// `args_of_t` for `MemberFunctionPointer`
 			using ArgsF = args_of_t<MemberF>;
 			using ArgsG = args_of_t<MemberG>;
 			using ArgsH = args_of_t<MemberH>;
