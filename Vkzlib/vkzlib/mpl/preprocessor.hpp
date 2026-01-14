@@ -2,27 +2,32 @@
 #define VKZLIB_PREPROCESSOR_H
 #pragma once
 
-#include <boost/preprocessor.hpp>
+// ============== Basic ==============
 
+/**
+* @brief Expands to nothing
+*/
 #define VKZLIB_PP_EMPTY()
+
+/**
+ * @brief Empty tuple
+ */
+#define VKZLIB_PP_EMPTY_TUPLE() ()
 
 /**
 * @brief Helper to remove parenthesis, `(typename T, typename U)` -> `typename T, typename U`
 */
 #define VKZLIB_PP_REMOVE_PARENTHESIS(...) __VA_ARGS__
 
-#define _VKZLIB_PP_IS_EMPTY_IMPL_HAVE_SOMETHING 0
-#define _VKZLIB_PP_IS_EMPTY_IMPL 1
-/**
-* @brief Empty -> `1`, otherwise `0`
-*/
-#define VKZLIB_PP_IS_EMPTY(...) _VKZLIB_PP_IS_EMPTY_IMPL##__VA_OPT__(_HAVE_SOMETHING)
-
 #define _VKZLIB_PP_CAT_IMPL(X, Y) X##Y
 /**
 * @brief Concatenate two tokens (So that no whitespace is needed to separate them)
 */
 #define VKZLIB_PP_CAT(X, Y) _VKZLIB_PP_CAT_IMPL(X, Y)
+#define VKZLIB_PP_CAT3_RIGHT(X1, X2, X3) VKZLIB_PP_CAT(X1, VKZLIB_PP_CAT(X2, X3))
+#define VKZLIB_PP_CAT4_RIGHT(X1, X2, X3, X4) VKZLIB_PP_CAT(X1, VKZLIB_PP_CAT3_RIGHT(X2, X3, X4))
+#define VKZLIB_PP_CAT3_LEFT(X1, X2, X3) VKZLIB_PP_CAT(VKZLIB_PP_CAT(X1, X2), X3)
+#define VKZLIB_PP_CAT4_LEFT(X1, X2, X3, X4) VKZLIB_PP_CAT(VKZLIB_PP_CAT3_LEFT(X1, X2, X3), X4)
 
 /**
 * @brief Leave the argument unchanged
@@ -30,9 +35,37 @@
 #define VKZLIB_PP_IDENTITY(X) X
 
 /** 
-* @brief Expands to 2 arguments.First is some dummy placeholder that should be ignored, second is the value
+* @brief Expands to 2 arguments. First is some dummy placeholder that should be ignored, second is the value
 */
 #define VKZLIB_PP_CONST(X) ~, X
+
+/**
+* @brief Should behave the same as `__VA_OPT__`, but you need to forward `__VA_ARGS__` to it
+*/
+#define VKZLIB_PP_VA_OPT(X, ...) \
+	__VA_OPT__(X)
+
+#define _VKZLIB_VA_OPT_SUPPORTED_IMPL_1 1
+#define _VKZLIB_VA_OPT_SUPPORTED_IMPL_0 0
+#define _VKZLIB_VA_OPT_SUPPORTED_IMPL___VA_OPT__(X) 0
+// `1` if __VA_OPT__ is supported, otherwise `0`
+#define VKZLIB_VA_OPT_SUPPORTED VKZLIB_PP_CAT(_VKZLIB_VA_OPT_SUPPORTED_IMPL_, VKZLIB_PP_VA_OPT(1, 0))
+
+static_assert(VKZLIB_VA_OPT_SUPPORTED,
+	"\n__VA_OPT__ not supported. Be sure to set standard to C++20.\n"
+	"Note that MSVC requires /Zc:preprocessor to make __VA_OPT__ available"
+	);
+
+#define _VKZLIB_PP_IS_EMPTY_IMPL_HAVE_SOMETHING 0
+#define _VKZLIB_PP_IS_EMPTY_IMPL 1
+/**
+* @brief Empty -> `1`, otherwise `0`
+*/
+#define VKZLIB_PP_IS_EMPTY(...)	VKZLIB_PP_CAT3_RIGHT(		\
+	_VKZLIB_PP_IS,											\
+	_EMPTY_IMPL,											\
+	VKZLIB_PP_VA_OPT(_HAVE_SOMETHING, __VA_ARGS__)			\
+)
 
 // Pick second one
 #define _VKZLIB_PP_PICK_SECOND_OR_IMPL(X, Y, ...) Y
@@ -48,23 +81,36 @@
 
 #define _VKZLIB_PP_IS_ZERO_IMPL_TRUE_0 VKZLIB_PP_CONST(1)
 /**
-* @brief Evalute to `1` if `X` is `0`, otherwise `0`
+* @brief Evaluate to `1` if `X` is `0`, otherwise `0`
 */
 #define VKZLIB_PP_IS_ZERO(X) \
     VKZLIB_PP_PICK_SECOND_OR(0, VKZLIB_PP_CAT(_VKZLIB_PP_IS_ZERO_IMPL_TRUE_, X))
 
-#define _VKZLIB_PP_IF_IMPL_0(TRUE_MACRO, FALSE_MACRO) TRUE_MACRO
-#define _VKZLIB_PP_IF_IMPL_1(TRUE_MACRO, FALSE_MACRO) FALSE_MACRO
-#define VKZLIB_PP_IF(CONDITION, TRUE_MACRO, FALSE_MACRO) \
-	VKZLIB_PP_CAT(_VKZLIB_PP_IF_IMPL_, VKZLIB_PP_IS_ZERO(CONDITION)) (TRUE_MACRO, FALSE_MACRO)
+#define _VKZLIB_PP_CONDITIONAL_TUPLE_IMPL_0(TRUE_TUPLE, FALSE_TUPLE) VKZLIB_PP_REMOVE_PARENTHESIS TRUE_TUPLE
+#define _VKZLIB_PP_CONDITIONAL_TUPLE_IMPL_1(TRUE_TUPLE, FALSE_TUPLE) VKZLIB_PP_REMOVE_PARENTHESIS FALSE_TUPLE
+#define VKZLIB_PP_CONDITIONAL_TUPLE(CONDITION, TRUE_TUPLE, FALSE_TUPLE) \
+	VKZLIB_PP_CAT(_VKZLIB_PP_CONDITIONAL_TUPLE_IMPL_, VKZLIB_PP_IS_ZERO(CONDITION)) (TRUE_TUPLE, FALSE_TUPLE)
 
-#define VKZLIB_PP_NOT(X) VKZLIB_PP_IF(X, 0, 1)
+#define VKZLIB_PP_CONDITIONAL(CONDITION, TRUE_TOKEN, FALSE_TOKEN) \
+	VKZLIB_PP_CONDITIONAL_TUPLE(CONDITION, (TRUE_TOKEN), (FALSE_TOKEN))
 
-// ============== Normalize spec generation ==============
+#define VKZLIB_PP_EXPAND_TUPLE_IF(CONDITION, TUPLE) \
+	VKZLIB_PP_CONDITIONAL_TUPLE(CONDITION, TUPLE, VKZLIB_PP_EMPTY_TUPLE())
+
+#define VKZLIB_PP_EXPAND_IF(CONDITION, TOKEN) \
+	VKZLIB_PP_EXPAND_TUPLE_IF(CONDITION, (TOKEN))
+
+#define VKZLIB_PP_NOT(X) VKZLIB_PP_CONDITIONAL(X, 0, 1)
+#define VKZLIB_PP_AND(X, Y) VKZLIB_PP_CONDITIONAL(X, Y, 0)
+#define VKZLIB_PP_OR(X, Y) VKZLIB_PP_CONDITIONAL(X, 1, Y)
+
+// ============== Signature Utilities ==============
 
 // ============== Signature Tags ==============
 
 #define VKZLIB_PP_SIGNATURE_NONE_TAG None
+
+#define VKZLIB_PP_SIGNATURE_VARIADIC_TAG Variadic
 
 #define VKZLIB_PP_SIGNATURE_CONST_TAG Const
 #define VKZLIB_PP_SIGNATURE_VOLATILE_TAG Volatile
@@ -77,11 +123,15 @@
 
 // ============== Equality check for Tags ==============
 
-// Those macro evalute to `1` if `X` is desired tag, otherwise `0`
+// Those macro evaluate to `1` if `X` is desired tag, otherwise `0`
 
 #define _VKZLIB_PP_SIGNATURE_IS_NONE_IMPL_TRUE_None VKZLIB_PP_CONST(1)
 #define VKZLIB_PP_SIGNATURE_IS_NONE(X) \
 	VKZLIB_PP_PICK_SECOND_OR(0, VKZLIB_PP_CAT(_VKZLIB_PP_SIGNATURE_IS_NONE_IMPL_TRUE_, X))
+
+#define _VKZLIB_PP_SIGNATURE_IS_VARIADIC_IMPL_TRUE_Variadic VKZLIB_PP_CONST(1)
+#define VKZLIB_PP_SIGNATURE_IS_VARIADIC(X) \
+	VKZLIB_PP_PICK_SECOND_OR(0, VKZLIB_PP_CAT(_VKZLIB_PP_SIGNATURE_IS_VARIADIC_IMPL_TRUE_, X))
 
 #define _VKZLIB_PP_SIGNATURE_IS_CONST_IMPL_TRUE_Const VKZLIB_PP_CONST(1)
 #define VKZLIB_PP_SIGNATURE_IS_CONST(X) \
@@ -108,101 +158,128 @@
 
 #define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_None VKZLIB_PP_EMPTY()
 
+#define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_Variadic , ...
+
 #define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_Const const
 #define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_Volatile volatile
 #define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_ConstVolatile const volatile
 
+// NOLINTBEGIN(*-macro-parentheses)
 #define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_LValue &
+// NOLINTEND(*-macro-parentheses)
 #define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_RValue &&
 
 #define _VKZLIB_PP_SIGNATURE_UNTAG_IMPL_Noexcept noexcept
 
-/* Evalute tag to corresponding qualifier: `LValue` -> `&` */
+/* Evaluate tag to corresponding qualifier: `LValue` -> `&` */
 #define VKZLIB_PP_SIGNATURE_UNTAG(TAG) VKZLIB_PP_CAT(_VKZLIB_PP_SIGNATURE_UNTAG_IMPL_, TAG)
 
-namespace vkz::preprocessor {
-	enum class CVQualifier {
-		VKZLIB_PP_SIGNATURE_NONE_TAG,
-		VKZLIB_PP_SIGNATURE_CONST_TAG,
-		VKZLIB_PP_SIGNATURE_VOLATILE_TAG,
-		VKZLIB_PP_SIGNATURE_CONST_VOLATILE_TAG,
-	};
-
-	enum class RefQualifier {
-		VKZLIB_PP_SIGNATURE_NONE_TAG,
-		VKZLIB_PP_SIGNATURE_LVALUE_TAG,
-		VKZLIB_PP_SIGNATURE_RVALUE_TAG,
-	};
-
-	enum class ExceptionQualifier {
-		VKZLIB_PP_SIGNATURE_NONE_TAG,
-		VKZLIB_PP_SIGNATURE_NOEXCEPT_TAG,
-	};
-}
-
-#define _VKZLIB_NORMALIZE_SPEC_IMPL_NOEX(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG, REF_TAG, NOEX_TAG)	  \
-	VKZLIB_PP_REMOVE_PARENTHESIS TEMPLATE_SIGNATURE																							  \
-	struct STRUCT_NAME<																														  \
-		VKZLIB_PP_REMOVE_PARENTHESIS NORMAL_TYPE VKZLIB_PP_SIGNATURE_UNTAG(CV_TAG) VKZLIB_PP_SIGNATURE_UNTAG(REF_TAG) VKZLIB_PP_SIGNATURE_UNTAG(NOEX_TAG)																														    \
-	> : SUPER_CLASS STRUCT_BODY(STRUCT_NAME, SUPER_CLASS, NORMAL_TYPE, CV_TAG, REF_TAG, NOEX_TAG);
+// =============== VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT ===============
 
 // Applied exception specification: (none), noexcept
-#define _VKZLIB_NORMALIZE_SPEC_IMPL_REF(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG, REF_TAG)	\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_NOEX(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG, REF_TAG,		\
-		VKZLIB_PP_SIGNATURE_NONE_TAG																								\
-	)																																\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_NOEX(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG, REF_TAG,		\
-		VKZLIB_PP_SIGNATURE_NOEXCEPT_TAG																							\
+#define _VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(	\
+	CONSTRUCTOR_MACRO,										\
+	VAR_TAG, CV_TAG, REF_TAG								\
+)															\
+	CONSTRUCTOR_MACRO(										\
+		VAR_TAG, CV_TAG, REF_TAG,							\
+		VKZLIB_PP_SIGNATURE_NONE_TAG						\
+	)														\
+	CONSTRUCTOR_MACRO(										\
+		VAR_TAG, CV_TAG, REF_TAG,							\
+		VKZLIB_PP_SIGNATURE_NOEXCEPT_TAG					\
 	)
 
 // Applied ref-qualification: (none), &, &&
-#define _VKZLIB_NORMALIZE_SPEC_IMPL_CV(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG)	\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_REF(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG,		\
-		VKZLIB_PP_SIGNATURE_NONE_TAG																					\
-	)																													\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_REF(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG,		\
-		VKZLIB_PP_SIGNATURE_LVALUE_TAG																					\
-	)																													\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_REF(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY, CV_TAG,		\
-		VKZLIB_PP_SIGNATURE_RVALUE_TAG																					\
+#define _VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(	\
+	CONSTRUCTOR_MACRO,										\
+	VAR_TAG, CV_TAG											\
+)															\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(		\
+		CONSTRUCTOR_MACRO, VAR_TAG, CV_TAG,					\
+		VKZLIB_PP_SIGNATURE_NONE_TAG						\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(		\
+		CONSTRUCTOR_MACRO, VAR_TAG, CV_TAG,					\
+		VKZLIB_PP_SIGNATURE_LVALUE_TAG						\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(		\
+		CONSTRUCTOR_MACRO, VAR_TAG, CV_TAG,					\
+		VKZLIB_PP_SIGNATURE_RVALUE_TAG						\
 	)
 
 // Applied cv-qualification: (none), const, volatile, const volatile
+#define _VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_CV(	\
+	CONSTRUCTOR_MACRO,										\
+	VAR_TAG													\
+)															\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_NONE_TAG				\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_CONST_TAG				\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_VOLATILE_TAG			\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_CONST_VOLATILE_TAG		\
+	)
+
 /**
 * @brief
-* Helper macros to generate all combinations of cv/ref/noexcept specifications
-* for types with function signature in it:
+* Apply all combinations of cv, ref, noexcept, ellipsis (C Variadic), in the form of tags, to supplied macro
 *
-* - exception specification: (none), noexcept
+* Use `VKZLIB_PP_SIGNATURE_UNTAG` to expand tag
 *
-* - ref-qualification: (none), &, &&
+* `NOEX_TAG`:
 *
-* - cv-qualification: (none), const, volatile, const volatile
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
 *
-* This will generate  2 * 4 * 3 = 24 specializations
+* - VKZLIB_PP_SIGNATURE_NOEXCEPT_TAG -> noexcept
 *
-* Usage: See `VKZLIB_NORMALIZE_TRAIT_SPEC`
+* `REF_TAG`:
 *
-* @param TEMPLATE_SIGNATURE Template signature with parentheses.
-*	e.g. `(template<typename R, typename ...Args>)`
-* @param STRUCT_NAME Name of the struct to be specialized
-* @param NORMAL_TYPE The type without cv/ref/noexcept qualifiers following, with parentheses.
-*	e.g. `(R(Args...))`
-* @param SUPER_CLASS class it inherits from. e.g. `std::true_type`
-* @param STRUCT_BODY Body of the struct. A higher-order macro that takes 4 parameters: NORMAL_TYPE, CV_TAG, REF_TAG, NOEX_TAG
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
+*
+* - VKZLIB_PP_SIGNATURE_LVALUE_TAG -> &
+*
+* - VKZLIB_PP_SIGNATURE_RVALUE_TAG -> &&
+*
+* `CV_TAG`:
+*
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
+*
+* - VKZLIB_PP_SIGNATURE_CONST_TAG -> const
+*
+* - VKZLIB_PP_SIGNATURE_VOLATILE_TAG -> volatile
+*
+* - VKZLIB_PP_SIGNATURE_CONST_VOLATILE_TAG -> const volatile
+*
+* `VAR_TAG`:
+*
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
+*
+* - VKZLIB_PP_SIGNATURE_VARIADIC_TAG -> , ...
+*
+* This will generate 2 * 3 * 4 * 2 = 48 specializations
+*
+* @param CONSTRUCTOR_MACRO Macro to apply, with parameters:
+*	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG
 */
-#define VKZLIB_PP_NORMALIZE_SPEC(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY)	\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_CV(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY,	\
-		VKZLIB_PP_SIGNATURE_NONE_TAG																		\
-	)																										\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_CV(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY,	\
-		VKZLIB_PP_SIGNATURE_CONST_TAG																		\
-	)																										\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_CV(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY,	\
-		VKZLIB_PP_SIGNATURE_VOLATILE_TAG																	\
-	)																										\
-	_VKZLIB_NORMALIZE_SPEC_IMPL_CV(TEMPLATE_SIGNATURE, STRUCT_NAME, NORMAL_TYPE, SUPER_CLASS, STRUCT_BODY,	\
-		VKZLIB_PP_SIGNATURE_CONST_VOLATILE_TAG																\
+#define VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT(CONSTRUCTOR_MACRO)		\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_CV(					\
+		CONSTRUCTOR_MACRO,												\
+		VKZLIB_PP_SIGNATURE_NONE_TAG									\
+	)																	\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_CV(					\
+		CONSTRUCTOR_MACRO,												\
+		VKZLIB_PP_SIGNATURE_VARIADIC_TAG								\
 	)
+
 
 #endif // VKZLIB_PREPROCESSOR_H

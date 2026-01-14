@@ -4,7 +4,6 @@
 
 #include <concepts>
 #include <type_traits>
-#include <tuple>
 
 namespace vkz::mpl {
     /**
@@ -27,10 +26,16 @@ namespace vkz::mpl {
             std::same_as<NormalCharT, char32_t *>;
 
     /**
+     * @brief `T` is one of `Us`
+     */
+    template <typename T, typename... Us>
+    concept AnyOf = (std::same_as<T, Us> || ...);
+
+    /**
     * @brief All types are identical
     */
-    template<typename... Ts>
-    concept Homogeneous = (std::same_as<std::tuple_element_t<0, std::tuple<Ts...> >, Ts> && ...);
+    template<typename T, typename... Us>
+    concept Homogeneous = (std::same_as<T, Us> && ...);
 
     /**
      * @brief All types have a common type
@@ -40,7 +45,7 @@ namespace vkz::mpl {
     template<typename... Ts>
     concept HasCommonType = requires
     {
-        { std::declval<std::common_type_t<Ts...> >() };
+        { std::declval<std::common_type_t<Ts...>>() };
     };
 
     template<bool B, std::invocable<> TBlock, std::invocable<> FBlock,

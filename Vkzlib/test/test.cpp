@@ -16,359 +16,363 @@ void printAllTypes() {
 	(std::printf("%d: %s\n", ++i, typeid(Ts).name()), ...);
 }
 
-#define EXPECT_TEMPLATE_TRUE(Concept, ...)							\
+// `TRUE` or `FALSE`
+#define EXPECT_TEMPLATE(BOOL, Concept, ...)							\
 	do {															\
 		constexpr bool e = Concept<__VA_ARGS__>;					\
 		std::printf("\n" #Concept " with template parameters: \n");	\
 		printAllTypes<__VA_ARGS__>();								\
 		std::printf("Evaluted to %s\n", e ? "true" : "false");		\
-		EXPECT_TRUE(e);												\
-	} while (false);
-
-#define EXPECT_TEMPLATE_FALSE(Concept, ...)							\
-	do {															\
-		constexpr bool e = Concept<__VA_ARGS__>;					\
-		std::printf("\n" #Concept " with template parameters: \n");	\
-		printAllTypes<__VA_ARGS__>();								\
-		std::printf("Evaluted to %s\n", e ? "true" : "false");		\
-		EXPECT_FALSE(e);											\
+		EXPECT_##BOOL(e);											\
 	} while (false);
 
 #define POINTER_OF_MEMBER(ClassName, MemberName) \
 	decltype(&ClassName::MemberName)
 
-namespace Test {
-	namespace vkz {
-		namespace mpl {
-			namespace core {
+namespace Test::vkz::mpl {
+	using namespace ::vkz::mpl;
 
-				TEST(MplCoreTest, TestHomogeneous) {
-					using A = int;
-					using B = A;
-					using C = B;
-					using D = int;
-					using E = const int;
-					using F = const int &;
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::Homogeneous, A, B, C, D);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::Homogeneous, D, E, F);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::Homogeneous, E, B, C);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl:: Homogeneous, B, E, C);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl:: Homogeneous, B, C, E);
-				}
+	namespace core {
 
+		TEST(MplCoreTest, TestAnyOf) {
+			using A = int;
+			using B = float;
+			using C = const char *;
+			using D = const int;
+			using E = const int &;
+			[[maybe_unused]] int i = 1;
+			using Int = decltype(i);
+			EXPECT_TEMPLATE(TRUE, ::vkz::mpl::AnyOf, Int, A);
+			EXPECT_TEMPLATE(TRUE, ::vkz::mpl::AnyOf, Int, A, B, C, D, E);
+			EXPECT_TEMPLATE(FALSE, ::vkz::mpl::AnyOf, Int, D);
+			EXPECT_TEMPLATE(FALSE, ::vkz::mpl::AnyOf, Int, E);
+			EXPECT_TEMPLATE(FALSE, ::vkz::mpl::AnyOf, Int, B, C, D, E);
+		}
+
+		TEST(MplCoreTest, TestHomogeneous) {
+			using A = int;
+			using B = A;
+			using C = B;
+			using D = int;
+			using E = const int;
+			using F = const int &;
+			EXPECT_TEMPLATE(TRUE, ::vkz::mpl::Homogeneous, A, B, C, D);
+			EXPECT_TEMPLATE(FALSE, ::vkz::mpl::Homogeneous, D, E, F);
+			EXPECT_TEMPLATE(FALSE, ::vkz::mpl::Homogeneous, E, B, C);
+			EXPECT_TEMPLATE(FALSE, ::vkz::mpl:: Homogeneous, B, E, C);
+			EXPECT_TEMPLATE(FALSE, ::vkz::mpl:: Homogeneous, B, C, E);
+		}
+
+	}
+
+	namespace function {
+
+		using namespace ::vkz::mpl::function;
+
+		struct DummyStruct {};
+
+		template<typename S>
+		class CallableType;
+
+		template<typename R, typename ...Args>
+		class CallableType<R(Args...)>
+		{
+		public:
+			using FunctionType = R(*)(Args...);
+
+			FunctionType f;
+
+			template<typename F>
+			CallableType(F f) : f(f) {};
+
+			R call(Args ...args) {
+				return f(args...);
 			}
 
-			namespace function {
+			R variadic(Args ...args, ...) const &noexcept {
+				return f(args...);
+			}
 
-				struct DummyStruct {};
+			R normalVariadic(Args ...args, ...) {
+				return f(args...);
+			}
 
-				template<typename S>
-				class CallableType;
+			R operator() (Args ...args) {
+				return call(args...);
+			}
 
-				template<typename R, typename ...Args>
-				class CallableType<R(Args...)>
-				{
-				public:
-					using FunctionType = R(*)(Args...);
+			using CallOperatorType = POINTER_OF_MEMBER(CallableType, operator());
+			using CallMemberType = POINTER_OF_MEMBER(CallableType, call);
+			using VariadicMemberType = POINTER_OF_MEMBER(CallableType, variadic);
+			using NormalVariadicMemberType = POINTER_OF_MEMBER(CallableType, normalVariadic);
+		};
 
-					FunctionType f;
+		using ExpectedSignature = void(int, float);
+		using ExpectedVariadicSignature = void(int, float, ...);
 
-					template<typename F>
-					CallableType(F f) : f(f) {};
+		class BaseFunctionParsingTest : public testing::Test
+		{
+			using This = BaseFunctionParsingTest;
 
-					R call(Args ...args) {
-						return f(args...);
-					}
+		public:
+			BaseFunctionParsingTest() noexcept = default;
 
-					R variadic(Args ...args, ...) const &noexcept {
-						return f(args...);
-					}
+			void f(int, float) {}
+			void g(int, float) noexcept {}
+			void h(int, float) const {}
+			void i(int, float) const noexcept {}
+			void j(int, float) const &noexcept {}
+			virtual void k(int, float) const noexcept {}
 
-					R normalVariadic(Args ...args, ...) {
-						return f(args...);
-					}
+			int iNum { 42 };
+			float flNum { 114.514f };
+			std::unique_ptr<int> pi { std::make_unique<int>(1919) };
 
-					R operator() (Args ...args) {
-						return call(args...);
-					}
+			// Types satisfy `Fn` with expected signature
+			using SigNoexcept = void(int, float) noexcept;
+			using PtrFun = void(*)(int, float);
+			using PtrFunNoexcept = void(*)(int, float) noexcept;
+			using StdFun = std::function<void(int, float)>;
+			using Callable = CallableType<void(int, float)>;
+			using Lambda = decltype([pi = std::make_unique<int>(42)](int, float) -> void {
+				*pi = 1;
+			});
+			using ConstexprLambda = decltype([](int, float) constexpr noexcept -> void {});
+			using QualifiedLambda = decltype([ptr = std::make_unique<int>(42)](int, float) mutable -> void {
+				*ptr = 1;
+			});
+			// Types not satisfy `Fn` with expected signature
+			using ResDiffSig = DummyStruct(int, float);
+			using ResDiffPtrFun = DummyStruct(*)(int, float);
+			using ArgsDiffStdFun = std::function<void(int, const float &)>;
+			using ArgsDiffCallable = CallableType<void(int, int)>;
+			using ResDiffLambda = decltype([pi = std::make_unique<int>(42)](int, float) {
+				return *pi;
+			});
+			// Types satisfy `Fn` with expected variadic signature
+			using VariadicPtrFun = void(*)(int, float, ...);
+			// Types not satisfy `Fn` with expected variadic signature
+			using InvalidVariadicPtrFun = void(*)(int, const char *, ...);
+			// Member function pointers satisfy `Fn` with expected signature
+			using MemberF = POINTER_OF_MEMBER(This, f);
+			using MemberG = POINTER_OF_MEMBER(This, g);
+			using MemberH = POINTER_OF_MEMBER(This, h);
+			using MemberI = POINTER_OF_MEMBER(This, i);
+			using MemberJ = POINTER_OF_MEMBER(This, j);
+			using MemberK = POINTER_OF_MEMBER(This, k);
+		};
 
-					using CallOperatorType = POINTER_OF_MEMBER(CallableType, operator());
-					using CallMemberType = POINTER_OF_MEMBER(CallableType, call);
-					using VariadicMemberType = POINTER_OF_MEMBER(CallableType, variadic);
-					using NormalVariadicMemberType = POINTER_OF_MEMBER(CallableType, normalVariadic);
-				};
+		class OverrideMemberParsingTest : public BaseFunctionParsingTest {
+			using This = OverrideMemberParsingTest;
 
-				using ExpectedSignature = void(int, float);
-				using ExpectedVariadicSignature = void(int, float, ...);
+		public:
+			OverrideMemberParsingTest() noexcept = default;
 
-				class FnTest : public testing::Test
-				{
-				public:
-					FnTest() noexcept {}
+			void k(int, float) const noexcept override {}
 
-					void f(int, float) {}
-					void g(int, float) noexcept {}
-					void h(int, float) const {}
-					void i(int, float) const noexcept {}
-					void j(int, float) const &noexcept {}
-					virtual void k(int, float) const noexcept {}
+			using MemberOverloadedJ = POINTER_OF_MEMBER(This, j);
+		};
 
-					int iNum { 42 };
-					float flNum { 114.514f };
-					std::unique_ptr<int> pi { std::make_unique<int>(1919) };
+		class HigherLevelUtilitiesTest : public BaseFunctionParsingTest {
+			using This = HigherLevelUtilitiesTest;
 
-					// Types satisfy `Fn` with expected signature
-					using SigNoexcept = void(int, float) noexcept;
-					using PtrFun = void(*)(int, float);
-					using PtrFunNoexcept = void(*)(int, float) noexcept;
-					using StdFun = std::function<void(int, float)>;
-					using Callable = CallableType<void(int, float)>;
-					using Lambda = decltype([pi = std::make_unique<int>(42)](int, float) -> void {
-						*pi = 1;
-					});
-					using ConstexprLambda = decltype([](int, float) constexpr noexcept -> void {});
-					using QualifiedLambda = decltype([ptr = std::make_unique<int>(42)](int, float) mutable -> void {
-						*ptr = 1;
-					});
-					// Types not satisfy `Fn` with expected signature
-					using ResDiffSig = DummyStruct(int, float);
-					using ResDiffPtrFun = DummyStruct(*)(int, float);
-					using ArgsDiffStdFun = std::function<void(int, const float &)>;
-					using ArgsDiffCallable = CallableType<void(int, int)>;
-					using ResDiffLambda = decltype([pi = std::make_unique<int>(42)](int, float) {
-						return *pi;
-					});
-					// Types satisfy `Fn` with expected variadic signature
-					using VariadicPtrFun = void(*)(int, float, ...);
-					// Types not satisfy `Fn` with expected variadic signature
-					using InvalidVariadicPtrFun = void(*)(int, const char *, ...);
-					// Member function pointers satisfy `Fn` with expected signature
-					using MemberF = POINTER_OF_MEMBER(FnTest, f);
-					using MemberG = POINTER_OF_MEMBER(FnTest, g);
-					using MemberH = POINTER_OF_MEMBER(FnTest, h);
-					using MemberI = POINTER_OF_MEMBER(FnTest, i);
-					using MemberJ = POINTER_OF_MEMBER(FnTest, j);
-					using MemberK = POINTER_OF_MEMBER(FnTest, k);
-				};
+		public:
 
-				class MemberSignatureParsingTest : public FnTest {
-				public:
-					MemberSignatureParsingTest() noexcept {}
+		};
 
-					void k(int, float) const noexcept override {}
+		TEST_F(BaseFunctionParsingTest, TestParsable) {
+			auto pi = std::make_unique<int>(42);
+			using ReferencedLambda = decltype([&pi](int, float) -> void {
+				*pi = 1;
+			});
 
-					using MemberOverloadedJ = POINTER_OF_MEMBER(MemberSignatureParsingTest, j);
-				};
+			EXPECT_TEMPLATE(TRUE, Parsable, SigNoexcept);
+			EXPECT_TEMPLATE(TRUE, Parsable, PtrFun);
+			EXPECT_TEMPLATE(TRUE, Parsable, PtrFunNoexcept);
+			EXPECT_TEMPLATE(TRUE, Parsable, StdFun);
+			EXPECT_TEMPLATE(TRUE, Parsable, Callable);
+			EXPECT_TEMPLATE(TRUE, Parsable, Lambda);
+			EXPECT_TEMPLATE(TRUE, Parsable, ConstexprLambda);
+			EXPECT_TEMPLATE(TRUE, Parsable, QualifiedLambda);
+			EXPECT_TEMPLATE(TRUE, Parsable, ReferencedLambda);
+			EXPECT_TEMPLATE(TRUE, Parsable, ResDiffSig);
+			EXPECT_TEMPLATE(TRUE, Parsable, ResDiffPtrFun);
+			EXPECT_TEMPLATE(TRUE, Parsable, ArgsDiffStdFun);
+			EXPECT_TEMPLATE(TRUE, Parsable, ArgsDiffCallable);
+			EXPECT_TEMPLATE(TRUE, Parsable, ResDiffLambda);
+			EXPECT_TEMPLATE(FALSE, Parsable, int);
+			EXPECT_TEMPLATE(FALSE, Parsable, decltype(pi));
+		}
 
-				TEST_F(MemberSignatureParsingTest, TestNormalMemberSignatureParsing) {
-#define EXPECT_NORMAL_MEMBER_SIGNATURE(TypeName) \
-	EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::NormalMemberSignature, TypeName)
-					EXPECT_NORMAL_MEMBER_SIGNATURE(MemberF);
-					EXPECT_NORMAL_MEMBER_SIGNATURE(Callable::CallMemberType);
-					EXPECT_NORMAL_MEMBER_SIGNATURE(Callable::CallOperatorType);
-					EXPECT_NORMAL_MEMBER_SIGNATURE(Callable::NormalVariadicMemberType);
-#undef EXPECT_NORMAL_MEMBER_SIGNATURE
-#define EXPECT_NOT_NORMAL_MEMBER_SIGNATURE(TypeName) \
-	EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::NormalMemberSignature, TypeName)
-					EXPECT_NOT_NORMAL_MEMBER_SIGNATURE(MemberJ);
-					EXPECT_NOT_NORMAL_MEMBER_SIGNATURE(Callable::VariadicMemberType);
-#undef EXPECT_NOT_NORMAL_MEMBER_SIGNATURE
-				}
+		TEST_F(BaseFunctionParsingTest, TestWithVariadicParam) {
+			EXPECT_TEMPLATE(TRUE, WithVariadicParam, VariadicPtrFun);
+			EXPECT_TEMPLATE(TRUE, WithVariadicParam, InvalidVariadicPtrFun);
+			EXPECT_TEMPLATE(FALSE, WithVariadicParam, PtrFun);
+			EXPECT_TEMPLATE(FALSE, WithVariadicParam, SigNoexcept);
+		}
 
-				TEST_F(MemberSignatureParsingTest, TestMemberSignatureParsing) {
-#define EXPECT_MEMBER_SIGNATURE(TypeName) \
-	EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::MemberFunctionPointer, TypeName)
-					EXPECT_MEMBER_SIGNATURE(MemberF);
-					EXPECT_MEMBER_SIGNATURE(MemberG);
-					EXPECT_MEMBER_SIGNATURE(MemberH);
-					EXPECT_MEMBER_SIGNATURE(MemberI);
-					EXPECT_MEMBER_SIGNATURE(MemberJ);
-					EXPECT_MEMBER_SIGNATURE(MemberOverloadedJ);
-					EXPECT_MEMBER_SIGNATURE(MemberK);
-					EXPECT_MEMBER_SIGNATURE(Callable::NormalVariadicMemberType);
-					EXPECT_MEMBER_SIGNATURE(Callable::VariadicMemberType);
-#undef EXPECT_MEMBER_SIGNATURE
-#define EXPECT_NOT_MEMBER_SIGNATURE(TypeName) \
-	EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::MemberFunctionPointer, TypeName)
-					EXPECT_NOT_MEMBER_SIGNATURE(SigNoexcept);
-					EXPECT_NOT_MEMBER_SIGNATURE(PtrFun);
-					EXPECT_NOT_MEMBER_SIGNATURE(PtrFunNoexcept);
-					EXPECT_NOT_MEMBER_SIGNATURE(StdFun);
-					EXPECT_NOT_MEMBER_SIGNATURE(Callable);
-					EXPECT_NOT_MEMBER_SIGNATURE(Lambda);
-					EXPECT_NOT_MEMBER_SIGNATURE(ConstexprLambda);
-					EXPECT_NOT_MEMBER_SIGNATURE(QualifiedLambda);
-					EXPECT_NOT_MEMBER_SIGNATURE(VariadicPtrFun);
-#define MEMBER_RESULT(TypeName) \
-	::vkz::mpl::function::member_sig_result_t<TypeName>
-					using ResF = MEMBER_RESULT(MemberF);
-					using ResG = MEMBER_RESULT(MemberG);
-					using ResH = MEMBER_RESULT(MemberH);
-					using ResI = MEMBER_RESULT(MemberI);
-					using ResJ = MEMBER_RESULT(MemberJ);
-					using ResOverloadedJ = MEMBER_RESULT(MemberOverloadedJ);
-					using ResK = MEMBER_RESULT(MemberK);
-					using ResNVar = MEMBER_RESULT(Callable::NormalVariadicMemberType);
-					using ResVar = MEMBER_RESULT(Callable::VariadicMemberType);
-#undef MEMBER_RESULT
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::Homogeneous, ResF, ResG, ResH, ResI, ResJ, ResOverloadedJ, ResK);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::Homogeneous, ResNVar, ResVar);
-#define MEMBER_ARGS_PACK(TypeName) \
-	::vkz::mpl::function::member_sig_args_pack_t<TypeName>
-					using ArgsF = MEMBER_ARGS_PACK(MemberF);
-					using ArgsG = MEMBER_ARGS_PACK(MemberG);
-					using ArgsH = MEMBER_ARGS_PACK(MemberH);
-					using ArgsI = MEMBER_ARGS_PACK(MemberI);
-					using ArgsJ = MEMBER_ARGS_PACK(MemberJ);
-					using ArgsOverloadedJ = MEMBER_ARGS_PACK(MemberOverloadedJ);
-					using ArgsK = MEMBER_ARGS_PACK(MemberK);
-					using ArgsNVar = MEMBER_ARGS_PACK(Callable::NormalVariadicMemberType);
-					using ArgsVar = MEMBER_ARGS_PACK(Callable::VariadicMemberType);
-#undef MEMBER_ARGS_PACK
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::Homogeneous, ArgsF, ArgsG, ArgsH, ArgsI, ArgsJ, ArgsOverloadedJ, ArgsK);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::Homogeneous, ArgsNVar, ArgsVar);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::NormalVariadicMemberSignature, Callable::NormalVariadicMemberType);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::NormalVariadicMemberSignature, Callable::VariadicMemberType);
-				}
+		template<typename T>
+		concept NormalMFP =
+			ParsableType::MemberFunctionPointer<T> &&
+			Normal<T>;
 
-				TEST_F(FnTest, TestParsableFuncLike) {
-					auto pi = std::make_unique<int>(42);
-					using ReferencedLambda = decltype([&pi](int, float) -> void {
-						*pi = 1;
-					});
+		template <typename T>
+		concept NormalVariadicMFP =
+			NormalMFP<T> &&
+			WithVariadicParam<T>;
 
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, SigNoexcept);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, PtrFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, PtrFunNoexcept);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, StdFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, Callable);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, Lambda);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, ConstexprLambda);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, QualifiedLambda);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, ReferencedLambda);
+		TEST_F(OverrideMemberParsingTest, TestMemberFunctionPointerParsing) {
 
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, ResDiffSig);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, ResDiffPtrFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, ArgsDiffStdFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, ArgsDiffCallable);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableFuncLike, ResDiffLambda);
+			// Test `MemberFunctionPointer`
+#define EXPECT_MP(BOOL, TypeName) EXPECT_TEMPLATE(BOOL, ParsableType::MemberFunctionPointer, TypeName)
+			EXPECT_MP(TRUE, MemberF);
+			EXPECT_MP(TRUE, MemberG);
+			EXPECT_MP(TRUE, MemberH);
+			EXPECT_MP(TRUE, MemberI);
+			EXPECT_MP(TRUE, MemberJ);
+			EXPECT_MP(TRUE, MemberOverloadedJ);
+			EXPECT_MP(TRUE, MemberK);
+			EXPECT_MP(TRUE, Callable::NormalVariadicMemberType);
+			EXPECT_MP(TRUE, Callable::VariadicMemberType);
+			[[maybe_unused]] constexpr bool _e = ParsableType::MemberFunctionPointer<SigNoexcept>;
+			EXPECT_MP(FALSE, SigNoexcept);
+			EXPECT_MP(FALSE, PtrFun);
+			EXPECT_MP(FALSE, PtrFunNoexcept);
+			EXPECT_MP(FALSE, StdFun);
+			EXPECT_MP(FALSE, Callable);
+			EXPECT_MP(FALSE, Lambda);
+			EXPECT_MP(FALSE, ConstexprLambda);
+			EXPECT_MP(FALSE, QualifiedLambda);
+			EXPECT_MP(FALSE, VariadicPtrFun);
+#undef EXPECT_MP
 
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::ParsableFuncLike, int);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::ParsableFuncLike, decltype(pi));
-				}
+			// Test `MemberFunctionPointer && Normal`
+#define EXPECT_NORMAL_MFP(BOOL, TypeName) EXPECT_TEMPLATE(BOOL,	NormalMFP, TypeName)
+			EXPECT_NORMAL_MFP(TRUE, MemberF);
+			EXPECT_NORMAL_MFP(TRUE, Callable::CallMemberType);
+			EXPECT_NORMAL_MFP(TRUE, Callable::CallOperatorType);
+			EXPECT_NORMAL_MFP(TRUE, Callable::NormalVariadicMemberType);
+			EXPECT_NORMAL_MFP(FALSE, MemberJ);
+			EXPECT_NORMAL_MFP(FALSE, Callable::VariadicMemberType);
+#undef EXPECT_NORMAL_MFP
 
-				TEST_F(FnTest, TestParsableVariadicFuncLike) {
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableVariadicFuncLike, VariadicPtrFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::ParsableVariadicFuncLike, InvalidVariadicPtrFun);
-				}
+			// Test `result_of_t` for `MemberFunctionPointer`
+			using ResF = result_of_t<MemberF>;
+			using ResG = result_of_t<MemberG>;
+			using ResH = result_of_t<MemberH>;
+			using ResI = result_of_t<MemberI>;
+			using ResJ = result_of_t<MemberJ>;
+			using ResOverloadedJ = result_of_t<MemberOverloadedJ>;
+			using ResK = result_of_t<MemberK>;
+			using ResNVar = result_of_t<Callable::NormalVariadicMemberType>;
+			using ResVar = result_of_t<Callable::VariadicMemberType>;
 
-				TEST_F(FnTest, TestSameArgsAs) {
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameArgsAs, ExpectedSignature, ResDiffSig);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameArgsAs, ExpectedSignature, SigNoexcept);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameArgsAs, PtrFun, ResDiffPtrFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameArgsAs, PtrFun, PtrFunNoexcept);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::SameArgsAs, StdFun, ArgsDiffStdFun);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::SameArgsAs, Callable, ArgsDiffCallable);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameArgsAs, Lambda, ResDiffLambda);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::SameArgsAs, PtrFun, VariadicPtrFun);
-				}
+			EXPECT_TEMPLATE(TRUE, Homogeneous, ResF, ResG, ResH, ResI, ResJ, ResOverloadedJ, ResK);
+			EXPECT_TEMPLATE(TRUE, Homogeneous, ResNVar, ResVar);
 
-				TEST_F(FnTest, TestSameResultAs) {
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::SameResultAs, ExpectedSignature, ResDiffSig);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameResultAs, ExpectedSignature, SigNoexcept);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::SameResultAs, PtrFun, ResDiffPtrFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameResultAs, PtrFun, PtrFunNoexcept);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameResultAs, StdFun, ArgsDiffStdFun);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameResultAs, Callable, ArgsDiffCallable);
-					EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::SameResultAs, Lambda, ResDiffLambda);
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::SameResultAs, PtrFun, VariadicPtrFun);
-				}
+			// Test `args_of_t` for `MemberFunctionPointer`
+			using ArgsF = args_of_t<MemberF>;
+			using ArgsG = args_of_t<MemberG>;
+			using ArgsH = args_of_t<MemberH>;
+			using ArgsI = args_of_t<MemberI>;
+			using ArgsJ = args_of_t<MemberJ>;
+			using ArgsOverloadedJ = args_of_t<MemberOverloadedJ>;
+			using ArgsK = args_of_t<MemberK>;
+			using ArgsNVar = args_of_t<Callable::NormalVariadicMemberType>;
+			using ArgsVar = args_of_t<Callable::VariadicMemberType>;
 
-				TEST_F(FnTest, TestSignatureParsing) {
-					auto pi = std::make_unique<int>(42);
-					using ReferencedLambda = decltype([&pi](int, float) -> void {
-						*pi = 1;
-					});
-					using SigSigNoexcept = ::vkz::mpl::function::parse_signature_from<SigNoexcept>;
-					using SigPtrFun = ::vkz::mpl::function::parse_signature_from<PtrFun>;
-					using SigPtrFunNoexcept = ::vkz::mpl::function::parse_signature_from<PtrFunNoexcept>;
-					using SigStdFun = ::vkz::mpl::function::parse_signature_from<StdFun>;
-					using SigCallable = ::vkz::mpl::function::parse_signature_from<Callable>;
-					using SigLambda = ::vkz::mpl::function::parse_signature_from<Lambda>;
-					using SigConstexprLambda = ::vkz::mpl::function::parse_signature_from<ConstexprLambda>;
-					using SigQualifiedLambda = ::vkz::mpl::function::parse_signature_from<QualifiedLambda>;
-					using SigReferencedLambda = ::vkz::mpl::function::parse_signature_from<QualifiedLambda>;
+			EXPECT_TEMPLATE(TRUE, Homogeneous, ArgsF, ArgsG, ArgsH, ArgsI, ArgsJ, ArgsOverloadedJ, ArgsK);
+			EXPECT_TEMPLATE(TRUE, Homogeneous, ArgsNVar, ArgsVar);
+			EXPECT_TEMPLATE(TRUE, NormalVariadicMFP, Callable::NormalVariadicMemberType);
+			EXPECT_TEMPLATE(FALSE, NormalVariadicMFP, Callable::VariadicMemberType);
+		}
 
-					// Verify result of `parse_signature`
+		TEST_F(HigherLevelUtilitiesTest, TestSameArgsAs) {
+			auto pi = std::make_unique<int>(42);
+			using ReferencedLambda = decltype([&pi](int, float) -> void {
+				*pi = 1;
+			});
 
-					// All arg types equal
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::Homogeneous,
-						SigSigNoexcept::args_pack_type,
-						SigPtrFun::args_pack_type,
-						// TODO:
-						// SigPtrFunNoexcept::args_pack_type,
-						SigStdFun::args_pack_type,
-						SigCallable::args_pack_type,
-						SigLambda::args_pack_type,
-						SigConstexprLambda::args_pack_type,
-						SigQualifiedLambda::args_pack_type,
-						SigReferencedLambda::args_pack_type);
+			EXPECT_TEMPLATE(TRUE, Homogeneous,
+				args_of_t<SigNoexcept>,
+				args_of_t<PtrFun>,
+				args_of_t<PtrFunNoexcept>,
+				args_of_t<StdFun>,
+				args_of_t<Callable>,
+				args_of_t<Lambda>,
+				args_of_t<ConstexprLambda>,
+				args_of_t<QualifiedLambda>,
+				args_of_t<ReferencedLambda>);
 
-					// All result type equal
-					EXPECT_TEMPLATE_TRUE(::vkz::mpl::Homogeneous,
-						SigSigNoexcept::return_type,
-						SigPtrFun::return_type,
-						// TODO:
-						// SigPtrFunNoexcept::return_type,
-						SigStdFun::return_type,
-						SigCallable::return_type,
-						SigLambda::return_type,
-						SigConstexprLambda::return_type,
-						SigQualifiedLambda::return_type,
-						SigReferencedLambda::return_type
-					);
-				}
+			EXPECT_TEMPLATE(TRUE, SameArgsAs, ExpectedSignature, ResDiffSig);
+			EXPECT_TEMPLATE(TRUE, SameArgsAs, ExpectedSignature, SigNoexcept);
+			EXPECT_TEMPLATE(TRUE, SameArgsAs, PtrFun, ResDiffPtrFun);
+			EXPECT_TEMPLATE(TRUE, SameArgsAs, PtrFun, PtrFunNoexcept);
+			EXPECT_TEMPLATE(FALSE, SameArgsAs, StdFun, ArgsDiffStdFun);
+			EXPECT_TEMPLATE(FALSE, SameArgsAs, Callable, ArgsDiffCallable);
+			EXPECT_TEMPLATE(TRUE, SameArgsAs, Lambda, ResDiffLambda);
+			EXPECT_TEMPLATE(FALSE, SameArgsAs, PtrFun, VariadicPtrFun);
+		}
 
-				TEST_F(FnTest, TestFn) {
-					auto pi = std::make_unique<int>(42);
-					using ReferencedLambda = decltype([&pi](int, float) -> void {
-						*pi = 1;
-					});
+		TEST_F(HigherLevelUtilitiesTest, TestSameResultAs) {
+			auto pi = std::make_unique<int>(42);
+			using ReferencedLambda = decltype([&pi](int, float) -> void {
+				*pi = 1;
+			});
 
-					printType<::vkz::mpl::function::normal_sig_args_pack_t<ExpectedSignature>>("Expected parameter types (Packed): ");
-					printType<::vkz::mpl::function::normal_sig_result_t<ExpectedSignature>>("Expected return type: ");
-					std::printf("\n");
-					// Test `Fn`
+			EXPECT_TEMPLATE(TRUE, Homogeneous,
+				result_of_t<SigNoexcept>,
+				result_of_t<PtrFun>,
+				result_of_t<PtrFunNoexcept>,
+				result_of_t<StdFun>,
+				result_of_t<Callable>,
+				result_of_t<Lambda>,
+				result_of_t<ConstexprLambda>,
+				result_of_t<QualifiedLambda>,
+				result_of_t<ReferencedLambda>
+			);
 
-#define EXPECT_FN(FunctionType) EXPECT_TEMPLATE_TRUE(::vkz::mpl::function::Fn, FunctionType, ExpectedSignature)
-#define EXPECT_NON_FN(FunctionType) EXPECT_TEMPLATE_FALSE(::vkz::mpl::function::Fn, FunctionType, ExpectedSignature)
+			EXPECT_TEMPLATE(FALSE, SameResultAs, ExpectedSignature, ResDiffSig);
+			EXPECT_TEMPLATE(TRUE, SameResultAs, ExpectedSignature, SigNoexcept);
+			EXPECT_TEMPLATE(FALSE, SameResultAs, PtrFun, ResDiffPtrFun);
+			EXPECT_TEMPLATE(TRUE, SameResultAs, PtrFun, PtrFunNoexcept);
+			EXPECT_TEMPLATE(TRUE, SameResultAs, StdFun, ArgsDiffStdFun);
+			EXPECT_TEMPLATE(TRUE, SameResultAs, Callable, ArgsDiffCallable);
+			EXPECT_TEMPLATE(FALSE, SameResultAs, Lambda, ResDiffLambda);
+			EXPECT_TEMPLATE(TRUE, SameResultAs, PtrFun, VariadicPtrFun);
+		}
 
-					// Valid
-					EXPECT_FN(SigNoexcept);
-					EXPECT_FN(PtrFun);
-					EXPECT_FN(PtrFunNoexcept);
-					EXPECT_FN(StdFun);
-					EXPECT_FN(Callable);
-					EXPECT_FN(Lambda);
-					EXPECT_FN(ConstexprLambda);
-					EXPECT_FN(QualifiedLambda);
-					EXPECT_FN(ReferencedLambda);
+		TEST_F(HigherLevelUtilitiesTest, TestFn) {
+			auto pi = std::make_unique<int>(42);
+			using ReferencedLambda = decltype([&pi](int, float) -> void {
+				*pi = 1;
+			});
 
-					// Invalid
-					EXPECT_NON_FN(ResDiffSig);
-					EXPECT_NON_FN(ResDiffPtrFun);
-					EXPECT_NON_FN(ArgsDiffStdFun);
-					EXPECT_NON_FN(ArgsDiffCallable);
-					EXPECT_NON_FN(ResDiffLambda);
+			printType<args_of_t<ExpectedSignature>>("Expected parameter types (Packed): ");
+			printType<args_of_t<ExpectedSignature>>("Expected return type: ");
+			std::printf("\n");
 
-					// Other types
-					EXPECT_NON_FN(int);
-					EXPECT_NON_FN(decltype(pi));
-
+#define EXPECT_FN(BOOL, FunctionType) EXPECT_TEMPLATE(BOOL, Fn, FunctionType, ExpectedSignature)
+			EXPECT_FN(TRUE, PtrFun);
+			EXPECT_FN(TRUE, PtrFunNoexcept);
+			EXPECT_FN(TRUE, StdFun);
+			EXPECT_FN(TRUE, Callable);
+			EXPECT_FN(TRUE, Lambda);
+			EXPECT_FN(TRUE, ConstexprLambda);
+			EXPECT_FN(TRUE, QualifiedLambda);
+			EXPECT_FN(TRUE, ReferencedLambda);
+			// Not `DirectInvocable`
+			EXPECT_FN(FALSE, SigNoexcept);
+			// Failed requirement check
+			EXPECT_FN(FALSE, ResDiffSig);
+			EXPECT_FN(FALSE, ResDiffPtrFun);
+			EXPECT_FN(FALSE, ArgsDiffStdFun);
+			EXPECT_FN(FALSE, ArgsDiffCallable);
+			EXPECT_FN(FALSE, ResDiffLambda);
+			// Non-function types
+			EXPECT_FN(FALSE, int);
+			EXPECT_FN(FALSE, decltype(pi));
 #undef EXPECT_FN
-#undef EXPECT_NON_FN
-				}
-			}
 		}
 	}
 }

@@ -29,10 +29,6 @@ target_include_directories(vkzlib INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(vkzlib
-    INTERFACE Boost::preprocessor
-)
-
 include(CTest)
 
 if (BUILD_TESTING)

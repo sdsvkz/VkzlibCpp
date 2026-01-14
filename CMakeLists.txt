@@ -12,5 +12,4 @@ endif()
 project("Vkzlib" LANGUAGES CXX)
 
 # Include sub-projects.
-add_subdirectory("boost_preprocessor")
 add_subdirectory("Vkzlib")
