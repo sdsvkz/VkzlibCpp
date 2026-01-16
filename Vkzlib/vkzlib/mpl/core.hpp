@@ -6,6 +6,7 @@
 #include <type_traits>
 
 namespace vkz::mpl {
+
     /**
     * @brief A class (same as `std::is_class_v<T>`)
     */
@@ -28,7 +29,7 @@ namespace vkz::mpl {
     /**
      * @brief `T` is one of `Us`
      */
-    template <typename T, typename... Us>
+    template<typename T, typename... Us>
     concept AnyOf = (std::same_as<T, Us> || ...);
 
     /**
@@ -50,7 +51,7 @@ namespace vkz::mpl {
 
     template<bool B, std::invocable<> TBlock, std::invocable<> FBlock,
         typename TBlockR = std::invoke_result_t<TBlock>,
-        typename FBlockR = std::invoke_result_t<FBlock> >
+        typename FBlockR = std::invoke_result_t<FBlock>>
     constexpr decltype(auto) conditionalCall(const TBlock &doTrue, const FBlock &doFalse) {
         if constexpr (B) {
             return doTrue();
@@ -58,6 +59,7 @@ namespace vkz::mpl {
             return doFalse();
         }
     }
+
 }
 
 #endif // VKZLIB_MPL_CORE_H

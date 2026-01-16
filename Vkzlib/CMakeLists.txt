@@ -20,8 +20,6 @@ set_target_properties(vkzlib PROPERTIES
 if (MSVC)
     target_compile_options(vkzlib INTERFACE
         "/Zc:preprocessor"
-        "/Zc:__cplusplus"
-        "/permissive-"
     )
 endif()
 

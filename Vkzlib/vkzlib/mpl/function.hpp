@@ -11,7 +11,7 @@
 
 namespace vkz::mpl::function {
 
-	namespace ParsableType {
+	namespace Type {
 		enum class SignatureContainer : signed char {
 			Signature,
 		};
@@ -26,32 +26,34 @@ namespace vkz::mpl::function {
 			MemberFunctionPointer,
 		};
 
-		template <typename T>
+		template<typename T>
 		concept ParsableTypeEnum = AnyOf<T, SignatureContainer, DirectInvocable, IndirectInvocable>;
 	}
 
-	enum class VariadicParam : signed char {
-		VKZLIB_PP_SIGNATURE_NONE_TAG,
-		VKZLIB_PP_SIGNATURE_VARIADIC_TAG,
-	};
+	namespace Property {
+		enum class VariadicParam : signed char {
+			None,
+			Variadic,
+		};
 
-	enum class CVQualifier : signed char {
-		VKZLIB_PP_SIGNATURE_NONE_TAG,
-		VKZLIB_PP_SIGNATURE_CONST_TAG,
-		VKZLIB_PP_SIGNATURE_VOLATILE_TAG,
-		VKZLIB_PP_SIGNATURE_CONST_VOLATILE_TAG,
-	};
+		enum class CVQualifier : signed char {
+			None,
+			Const,
+			Volatile,
+			ConstVolatile,
+		};
 
-	enum class RefQualifier : signed char {
-		VKZLIB_PP_SIGNATURE_NONE_TAG,
-		VKZLIB_PP_SIGNATURE_LVALUE_TAG,
-		VKZLIB_PP_SIGNATURE_RVALUE_TAG,
-	};
+		enum class RefQualifier : signed char {
+			None,
+			LValue,
+			RValue,
+		};
 
-	enum class ExceptionQualifier : signed char {
-		VKZLIB_PP_SIGNATURE_NONE_TAG,
-		VKZLIB_PP_SIGNATURE_NOEXCEPT_TAG,
-	};
+		enum class ExceptionQualifier : signed char {
+			None,
+			Noexcept,
+		};
+	}
 
 	/**
 	* @brief Classes with `operator()` but not overloaded
@@ -108,16 +110,20 @@ namespace vkz::mpl::function {
 	// Template parameter pack container type name
 #define _VKZLIB_T_PACK Pack
 
-#define VKZLIB_PARSER_TRAIT_SPEC_BODY_COMMON(							\
-	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG									\
-)																		\
-	using _VKZLIB_R_T = _VKZLIB_T_R;									\
-	template<template <typename...> typename Pack>						\
-	using _VKZLIB_ARGS_PACK_T = Pack<_VKZLIB_T_ARGS...>;				\
-	static constexpr auto _VKZLIB_VAR = VariadicParam::VAR_TAG;			\
-	static constexpr auto _VKZLIB_CV = CVQualifier::CV_TAG;				\
-	static constexpr auto _VKZLIB_REF = RefQualifier::REF_TAG;			\
-	static constexpr auto _VKZLIB_NOEX = ExceptionQualifier::NOEX_TAG;
+#define VKZLIB_PARSER_TRAIT_SPEC_BODY_COMMON(										\
+	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG												\
+)																					\
+	using _VKZLIB_R_T = _VKZLIB_T_R;												\
+	template<template <typename...> typename Pack>									\
+	using _VKZLIB_ARGS_PACK_T = Pack<_VKZLIB_T_ARGS...>;							\
+	static constexpr auto _VKZLIB_VAR =												\
+		Property::VariadicParam::VKZLIB_PP_SIGNATURE_TAG_TO_ENUM(VAR_TAG);			\
+	static constexpr auto _VKZLIB_CV =												\
+		Property::CVQualifier::VKZLIB_PP_SIGNATURE_TAG_TO_ENUM(CV_TAG);				\
+	static constexpr auto _VKZLIB_REF =												\
+		Property::RefQualifier::VKZLIB_PP_SIGNATURE_TAG_TO_ENUM(REF_TAG);			\
+	static constexpr auto _VKZLIB_NOEX =											\
+		Property::ExceptionQualifier::VKZLIB_PP_SIGNATURE_TAG_TO_ENUM(NOEX_TAG);
 
 #define VKZLIB_DEFINE_COMMON_PARSING_UTILS(												\
 	ParserTraitName, ConceptName, NormalTypeHelperName,									\
@@ -171,7 +177,7 @@ namespace vkz::mpl::function {
 	)> : std::true_type										\
 	{														\
 		static constexpr auto _VKZLIB_P_T =					\
-			ParsableType::SignatureContainer::Signature;	\
+			Type::SignatureContainer::Signature;			\
 		using _VKZLIB_N_T = VKZLIB_FUNCTION_SIGNATURE_TYPE(	\
 			VAR_TAG,										\
 			VKZLIB_PP_SIGNATURE_NONE_TAG,					\
@@ -208,7 +214,7 @@ namespace vkz::mpl::function {
 	)>															\
 	{															\
 		static constexpr auto _VKZLIB_P_T =						\
-			ParsableType::DirectInvocable::FunctionPointer;		\
+			Type::DirectInvocable::FunctionPointer;				\
 		using _VKZLIB_N_T = VKZLIB_FUNCTION_POINTER_TYPE(		\
 			VAR_TAG,											\
 			VKZLIB_PP_SIGNATURE_NONE_TAG,						\
@@ -248,28 +254,28 @@ namespace vkz::mpl::function {
 	)>
 
 
-#define VKZLIB_DEFINE_PARSE_STD_FUNCTION_LIKE(				\
-	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
-)															\
-	template<												\
-		template <typename> typename _VKZLIB_T_F,			\
-		typename _VKZLIB_T_R, typename ..._VKZLIB_T_ARGS	\
-	> struct parse<VKZLIB_STD_FUNCTION_LIKE_TYPE(			\
-		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG					\
-	)> : parse<VKZLIB_FUNCTION_SIGNATURE_TYPE(				\
-		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG					\
-	)>														\
-	{														\
-		static constexpr auto _VKZLIB_P_T =					\
-			ParsableType::DirectInvocable::STLFunctionLike;	\
-		using _VKZLIB_N_T = VKZLIB_STD_FUNCTION_LIKE_TYPE(	\
-			VAR_TAG,										\
-			VKZLIB_PP_SIGNATURE_NONE_TAG,					\
-			VKZLIB_PP_SIGNATURE_NONE_TAG,					\
-			VKZLIB_PP_SIGNATURE_NONE_TAG					\
-		);													\
-		template<typename S>								\
-		using _VKZLIB_F_T = _VKZLIB_T_F<S>;					\
+#define VKZLIB_DEFINE_PARSE_STD_FUNCTION_LIKE(					\
+	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG							\
+)																\
+	template<													\
+		template <typename, typename...> typename _VKZLIB_T_F,	\
+		typename _VKZLIB_T_R, typename ..._VKZLIB_T_ARGS		\
+	> struct parse<VKZLIB_STD_FUNCTION_LIKE_TYPE(				\
+		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
+	)> : parse<VKZLIB_FUNCTION_SIGNATURE_TYPE(					\
+		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
+	)>															\
+	{															\
+		static constexpr auto _VKZLIB_P_T =						\
+			Type::DirectInvocable::STLFunctionLike;				\
+		using _VKZLIB_N_T = VKZLIB_STD_FUNCTION_LIKE_TYPE(		\
+			VAR_TAG,											\
+			VKZLIB_PP_SIGNATURE_NONE_TAG,						\
+			VKZLIB_PP_SIGNATURE_NONE_TAG,						\
+			VKZLIB_PP_SIGNATURE_NONE_TAG						\
+		);														\
+		template<typename S>									\
+		using _VKZLIB_F_T = _VKZLIB_T_F<S>;						\
 	};
 
 	VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT(VKZLIB_DEFINE_PARSE_STD_FUNCTION_LIKE)
@@ -297,7 +303,7 @@ namespace vkz::mpl::function {
 	)>																\
 	{																\
 		static constexpr auto _VKZLIB_P_T =							\
-			ParsableType::IndirectInvocable::MemberFunctionPointer;	\
+			Type::IndirectInvocable::MemberFunctionPointer;			\
 		using _VKZLIB_N_T =	VKZLIB_MEMBER_FUNCTION_POINTER_TYPE(	\
 			VAR_TAG,												\
 			VKZLIB_PP_SIGNATURE_NONE_TAG,							\
@@ -317,7 +323,7 @@ namespace vkz::mpl::function {
 	template <MonomorphicFunctor L>
 	struct parse<L> : parse<decltype(&L::operator())> {
 		static constexpr auto _VKZLIB_P_T =
-			ParsableType::DirectInvocable::MonomorphicFunctor;
+			Type::DirectInvocable::MonomorphicFunctor;
 		using _VKZLIB_N_T = void;
 	};
 
@@ -335,7 +341,7 @@ namespace vkz::mpl::function {
 	template<typename F, typename G>
 	concept SameCategoryAs = std::same_as<category_of_t<F>, category_of_t<G>>;
 
-	template<ParsableType::ParsableTypeEnum C, ParsableType::ParsableTypeEnum E>
+	template<Type::ParsableTypeEnum C, Type::ParsableTypeEnum E>
 	constexpr bool _isAnyTypeOf_impl(C type, E typeEnum) {
 		if constexpr (std::same_as<C, E>) {
 			return type == typeEnum;
@@ -344,7 +350,7 @@ namespace vkz::mpl::function {
 		}
 	}
 
-	template<Parsable T, ParsableType::ParsableTypeEnum... Es>
+	template<Parsable T, Type::ParsableTypeEnum... Es>
 	constexpr bool isAnyTypeOf(Es... typeEnums) {
 		constexpr auto type = type_of<T>;
 		return ((_isAnyTypeOf_impl(type, typeEnums)) || ...);
@@ -355,9 +361,6 @@ namespace vkz::mpl::function {
 
 	template<Parsable T, template <typename...> typename Pack = DefaultPack>
 	using args_of_t = parse<T>::template _VKZLIB_ARGS_PACK_T<Pack>;
-
-	template<typename T>
-	concept WithVariadicParam = Parsable<T> && parse<T>::_VKZLIB_VAR != VariadicParam::None;
 
 	template<Parsable T>
 	constexpr auto variadic_type_of = parse<T>::_VKZLIB_VAR;
@@ -371,32 +374,98 @@ namespace vkz::mpl::function {
 	template<Parsable T>
 	constexpr auto exception_qualifier_of = parse<T>::_VKZLIB_NOEX;
 
+	/**
+	 * @note Lambda is not normalizable
+	 */
 	template<typename T>
 	concept Normalizable = Parsable<T> &&
 		!std::same_as<typename parse<T>::_VKZLIB_N_T, void>;
 
+	/**
+	 * @brief Remove CV, Ref, noexcept from signature
+	 *
+	 * @note Lambda is not normalizable
+	 */
 	template<Normalizable T>
 	using normalize_t = parse<T>::_VKZLIB_N_T;
 
-	template<typename T>
-	concept Normal = Normalizable<T> &&
-		std::same_as<normalize_t<T>, T>;
+	// ============ Helpers (Property Requirements) ============
 
-	template<typename T>
-	concept SignatureContainer = Parsable<T> &&
-		std::same_as<category_of_t<T>, ParsableType::SignatureContainer>;
+	/**
+	 * @brief Property requirements
+	 */
+	namespace Property::Concepts {
 
-	template<typename T>
-	concept DirectInvocable = Parsable<T> &&
-		std::same_as<category_of_t<T>, ParsableType::DirectInvocable>;
+		template<std::equality_comparable T, std::convertible_to<T>... Ts>
+		constexpr bool _any_equal(T x, Ts... ys) {
+			return ((x == ys) || ...);
+		}
 
-	template<typename T>
-	concept IndirectInvocable = Parsable<T> &&
-		std::same_as<category_of_t<T>, ParsableType::IndirectInvocable>;
+		template<typename T>
+		concept Variadic = Parsable<T> &&
+			variadic_type_of<T> != Property::VariadicParam::None;
+
+		template<typename T>
+		concept NonCV = Parsable<T> &&
+			cv_qualifier_of<T> == Property::CVQualifier::None;
+
+		template<typename T>
+		concept Const = Parsable<T> && _any_equal(cv_qualifier_of<T>,
+			Property::CVQualifier::Const,
+			Property::CVQualifier::ConstVolatile);
+
+		template<typename T>
+		concept Volatile = Parsable<T> && _any_equal(cv_qualifier_of<T>,
+			Property::CVQualifier::Volatile,
+			Property::CVQualifier::ConstVolatile);
+
+		template<typename T>
+		concept NonRef = Parsable<T> &&
+			ref_qualifier_of<T> == Property::RefQualifier::None;
+
+		template<typename T>
+		concept LValueRef = Parsable<T> &&
+			ref_qualifier_of<T> == Property::RefQualifier::LValue;
+
+		template<typename T>
+		concept RValueRef = Parsable<T> &&
+			ref_qualifier_of<T> == Property::RefQualifier::RValue;
+
+		template<typename T>
+		concept NoThrow = Parsable<T> &&
+			exception_qualifier_of<T> == Property::ExceptionQualifier::Noexcept;
+
+		template<typename T>
+		concept Normal = Parsable<T> &&
+			NonCV<T> && NonRef<T> && !NoThrow<T>;
+	}
+
 
 	// ============ Helpers (Concrete Parsable Type) ============
 
-	namespace ParsableType {
+	/**
+	 * @brief Concepts for labeling parsable
+	 */
+	namespace Type::Concepts {
+		// Categories
+
+		template<typename T>
+		concept SignatureContainer = Parsable<T> &&
+			std::same_as<category_of_t<T>, enum SignatureContainer>;
+
+		template<typename T>
+		concept DirectInvocable = Parsable<T> &&
+			std::same_as<category_of_t<T>, enum DirectInvocable>;
+
+		template<typename T>
+		concept IndirectInvocable = Parsable<T> &&
+			std::same_as<category_of_t<T>, enum IndirectInvocable>;
+
+		// Concrete types
+
+		/**
+		 * @brief Types with the normal form `R(Args...)`
+		 */
 		template<typename T>
 		concept Signature = Parsable<T> &&
 			isAnyTypeOf<T>(SignatureContainer::Signature);
@@ -405,10 +474,16 @@ namespace vkz::mpl::function {
 		concept FunctionPointer = Parsable<T> &&
 			isAnyTypeOf<T>(DirectInvocable::FunctionPointer);
 
+		/**
+		 * @brief Types similar to `std::function`: First template parameter is a signature
+		 */
 		template<typename T>
 		concept STLFunctionLike = Parsable<T> &&
 			isAnyTypeOf<T>(DirectInvocable::STLFunctionLike);
 
+		/**
+		 * @brief Types with call operator, but not overloaded
+		 */
 		template<typename T>
 		concept MonomorphicFunctor = Parsable<T> &&
 			isAnyTypeOf<T>(DirectInvocable::MonomorphicFunctor);
@@ -416,18 +491,19 @@ namespace vkz::mpl::function {
 		template<typename T>
 		concept MemberFunctionPointer = Parsable<T> &&
 			isAnyTypeOf<T>(IndirectInvocable::MemberFunctionPointer);
+
 	}
 
 	// ============ Helpers (DirectInvocable) ============
 
-	template<IndirectInvocable T, typename S>
-		requires (isAnyTypeOf<T>(ParsableType::DirectInvocable::STLFunctionLike))
+	template<Type::Concepts::IndirectInvocable T, typename S>
+		requires (isAnyTypeOf<T>(Type::DirectInvocable::STLFunctionLike))
 	using function_type_of_t = parse<T>::template _VKZLIB_F_T<S>;
 
 	// ============ Helpers (IndirectInvocable) ============
 
-	template<IndirectInvocable T>
-		requires (isAnyTypeOf<T>(ParsableType::IndirectInvocable::MemberFunctionPointer))
+	template<Type::Concepts::IndirectInvocable T>
+		requires (isAnyTypeOf<T>(Type::IndirectInvocable::MemberFunctionPointer))
 	using class_of_t = parse<T>::_VKZLIB_C_T;
 
 #undef VKZLIB_FUNCTION_SIGNATURE_TYPE
@@ -453,22 +529,33 @@ namespace vkz::mpl::function {
 
 	// ============ Higher-level utilities ============
 
+	/**
+	 * @brief Parsable function type with the same return type as `F`.
+	 */
 	template<typename F, typename G>
 	concept SameResultAs =
 		Parsable<F> &&
 		Parsable<G> &&
 		std::same_as<result_of_t<F>, result_of_t<G>>;
 
+	/**
+	 * @brief Parsable function type with the same parameter list as `G`, including C variadic parameter (`...`).
+	 *
+	 * @tparam Pack Container for storing types of arguments
+	 */
 	template<typename F, typename G, template <typename...> typename Pack = DefaultPack>
 	concept SameArgsAs =
 		Parsable<F> &&
 		Parsable<G> &&
-		WithVariadicParam<F> == WithVariadicParam<G> &&
+		Property::Concepts::Variadic<F> == Property::Concepts::Variadic<G> &&
 		std::same_as<args_of_t<F, Pack>, args_of_t<G, Pack>>;
 
+	/**
+	 * @brief Direct invocable type with same signature as `G`
+	 */
 	template<typename F, typename G, template <typename...> typename Pack = DefaultPack>
 	concept Fn =
-		DirectInvocable<F> &&
+		Type::Concepts::DirectInvocable<F> &&
 		SameResultAs<F, G> &&
 		SameArgsAs<F, G, Pack>;
 

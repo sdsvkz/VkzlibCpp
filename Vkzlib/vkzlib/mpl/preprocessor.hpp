@@ -174,6 +174,23 @@ static_assert(VKZLIB_VA_OPT_SUPPORTED,
 /* Evaluate tag to corresponding qualifier: `LValue` -> `&` */
 #define VKZLIB_PP_SIGNATURE_UNTAG(TAG) VKZLIB_PP_CAT(_VKZLIB_PP_SIGNATURE_UNTAG_IMPL_, TAG)
 
+// =============== Expand tag to enum name ===============
+
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_None None
+
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_Variadic Variadic
+
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_Const Const
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_Volatile Volatile
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_ConstVolatile ConstVolatile
+
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_LValue LValue
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_RValue RValue
+
+#define _VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_Noexcept Noexcept
+
+#define VKZLIB_PP_SIGNATURE_TAG_TO_ENUM(TAG) VKZLIB_PP_CAT(_VKZLIB_PP_SIGNATURE_TAG_TO_ENUM_IMPL_, TAG)
+
 // =============== VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT ===============
 
 // Applied exception specification: (none), noexcept
