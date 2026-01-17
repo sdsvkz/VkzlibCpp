@@ -1,7 +1,5 @@
 ﻿#include <functional>
 #include <memory>
-#include <array>
-#include <vector>
 #include <gtest/gtest.h>
 
 #include "vkzlib/mpl.hpp"
@@ -167,6 +165,15 @@ namespace Test::vkz::mpl {
 			using CallOperatorType = POINTER_OF_MEMBER(CallableT2, (operator()));
 			using CallMemberType = POINTER_OF_MEMBER(CallableT2, (call));
 		};
+
+		template<typename S, typename... Ts>
+		class NonCallableT2 {};
+
+		template<typename R, typename... Args, typename... Ts>
+		class NonCallableT2<R(Args...), Ts...> {};
+
+		template<typename R, typename... Args, typename... Ts>
+		class NonCallableT2<R(Args..., ...), Ts...> {};
 
 		using ExpectedSignature = void(int, float);
 		using ExpectedVariadicSignature = void(int, float, ...);
@@ -884,7 +891,8 @@ namespace Test::vkz::mpl {
 			EXPECT_STLFUNLIKE(FALSE, ExpectedVariadicSignature);
 			EXPECT_STLFUNLIKE(FALSE, RegularLambda);
 			EXPECT_STLFUNLIKE(FALSE, NormalMember);
-			EXPECT_STLFUNLIKE(FALSE, std::vector<void(int, float)>);
+			EXPECT_STLFUNLIKE(FALSE, NonCallableT2<void(int, float)>);
+			EXPECT_STLFUNLIKE(FALSE, NonCallableT2<void(int, float), DummyStruct>);
 #undef EXPECT_STLFUNLIKE
 		}
 
