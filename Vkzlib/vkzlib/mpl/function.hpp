@@ -18,6 +18,7 @@ namespace vkz::mpl::function {
 
 		enum class DirectInvocable : signed char {
 			FunctionPointer,
+			// TODO: FunctionReference,
 			STLFunctionLike,
 			MonomorphicFunctor,
 		};
@@ -247,21 +248,31 @@ namespace vkz::mpl::function {
 	// ============ std::function Like ============
 
 #define VKZLIB_STD_FUNCTION_LIKE_TYPE(							\
-	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG							\
+	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG, OTHERS					\
 )																\
 	_VKZLIB_T_F<VKZLIB_FUNCTION_SIGNATURE_TYPE(					\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
-	)>
-
+	), OTHERS...>
 
 #define VKZLIB_DEFINE_PARSE_STD_FUNCTION_LIKE(					\
 	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG							\
 )																\
 	template<													\
 		template <typename, typename...> typename _VKZLIB_T_F,	\
-		typename _VKZLIB_T_R, typename ..._VKZLIB_T_ARGS		\
-	> struct parse<VKZLIB_STD_FUNCTION_LIKE_TYPE(				\
-		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
+		typename... Others,										\
+		typename _VKZLIB_T_R, typename... _VKZLIB_T_ARGS		\
+	> requires													\
+		std::invocable<VKZLIB_STD_FUNCTION_LIKE_TYPE(			\
+			VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG, Others			\
+		), _VKZLIB_T_ARGS...> &&								\
+		std::same_as<											\
+			_VKZLIB_T_R,										\
+			std::invoke_result_t<VKZLIB_STD_FUNCTION_LIKE_TYPE(	\
+				VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG, Others		\
+			), _VKZLIB_T_ARGS...>								\
+		>														\
+	struct parse<VKZLIB_STD_FUNCTION_LIKE_TYPE(					\
+		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG, Others				\
 	)> : parse<VKZLIB_FUNCTION_SIGNATURE_TYPE(					\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
 	)>															\
@@ -272,10 +283,11 @@ namespace vkz::mpl::function {
 			VAR_TAG,											\
 			VKZLIB_PP_SIGNATURE_NONE_TAG,						\
 			VKZLIB_PP_SIGNATURE_NONE_TAG,						\
-			VKZLIB_PP_SIGNATURE_NONE_TAG						\
+			VKZLIB_PP_SIGNATURE_NONE_TAG,						\
+			Others												\
 		);														\
 		template<typename S>									\
-		using _VKZLIB_F_T = _VKZLIB_T_F<S>;						\
+		using _VKZLIB_F_T = _VKZLIB_T_F<S, Others...>;			\
 	};
 
 	VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT(VKZLIB_DEFINE_PARSE_STD_FUNCTION_LIKE)

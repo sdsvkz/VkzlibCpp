@@ -1,5 +1,7 @@
 ﻿#include <functional>
 #include <memory>
+#include <array>
+#include <vector>
 #include <gtest/gtest.h>
 
 #include "vkzlib/mpl.hpp"
@@ -120,7 +122,51 @@ namespace Test::vkz::mpl {
 		};
 
 		template<typename S, typename Dummy = void>
-		class CallableT2 {};
+		class CallableT2;
+
+		template<typename R, typename... Args, typename Dummy>
+		class CallableT2<R(Args...), Dummy> {
+		public:
+			using FunctionType = R(*)(Args...);
+
+			FunctionType f;
+
+			template<typename F>
+			explicit constexpr CallableT2(F f) noexcept : f(f) {};
+
+			R call(Args... args) {
+				return f(args...);
+			}
+
+			R operator() (Args... args) {
+				return call(args...);
+			}
+
+			using CallOperatorType = POINTER_OF_MEMBER(CallableT2, (operator()));
+			using CallMemberType = POINTER_OF_MEMBER(CallableT2, (call));
+		};
+
+		template<typename R, typename... Args, typename Dummy>
+		class CallableT2<R(Args..., ...), Dummy> {
+		public:
+			using FunctionType = R(*)(Args..., ...);
+
+			FunctionType f;
+
+			template<typename F>
+			explicit constexpr CallableT2(F f) noexcept : f(f) {};
+
+			R call(Args... args) {
+				return f(args...);
+			}
+
+			R operator() (Args... args) {
+				return call(args...);
+			}
+
+			using CallOperatorType = POINTER_OF_MEMBER(CallableT2, (operator()));
+			using CallMemberType = POINTER_OF_MEMBER(CallableT2, (call));
+		};
 
 		using ExpectedSignature = void(int, float);
 		using ExpectedVariadicSignature = void(int, float, ...);
@@ -782,6 +828,7 @@ namespace Test::vkz::mpl {
 
 #define EXPECT_SIG(BOOL, ...) EXPECT_TEMPLATE(BOOL, Signature, __VA_ARGS__)
 			EXPECT_SIG(TRUE, ExpectedSignature);
+			EXPECT_SIG(TRUE, Sig);
 			EXPECT_SIG(TRUE, SigNoexcept);
 			EXPECT_SIG(TRUE, ResDiffSig);
 			EXPECT_SIG(TRUE, ResDiffVariadicSig);
@@ -793,6 +840,52 @@ namespace Test::vkz::mpl {
 			EXPECT_SIG(FALSE, RegularLambda);
 			EXPECT_SIG(FALSE, NormalMember);
 			EXPECT_SIG(FALSE, NormalVariadicPtrFun);
+#undef EXPECT_SIG
+		}
+
+		TEST_F(ParsableConceptTest, TestFunctionPointer) {
+			using Type::Concepts::FunctionPointer;
+
+#define EXPECT_FP(BOOL, ...) EXPECT_TEMPLATE(BOOL, FunctionPointer, __VA_ARGS__)
+			EXPECT_FP(TRUE, NormalPtrFun);
+			EXPECT_FP(TRUE, PtrFunNoexcept);
+			EXPECT_FP(TRUE, VariadicPtrFun);
+			EXPECT_FP(TRUE, NormalVariadicPtrFun);
+			EXPECT_FP(TRUE, ArgsDiffVariadicPtrFun);
+
+			EXPECT_FP(FALSE, Sig);
+			EXPECT_FP(FALSE, ResDiffSig);
+			EXPECT_FP(FALSE, ResDiffVariadicSig);
+			EXPECT_FP(FALSE, ExpectedVariadicSignature);
+			EXPECT_FP(FALSE, NormalStdFun);
+			EXPECT_FP(FALSE, NormalCallable);
+			EXPECT_FP(FALSE, RegularLambda);
+			EXPECT_FP(FALSE, NormalMember);
+#undef EXPECT_FP
+		}
+
+		TEST_F(ParsableConceptTest, TestSTLFunctionLike) {
+			using Type::Concepts::STLFunctionLike;
+
+#define EXPECT_STLFUNLIKE(BOOL, ...) EXPECT_TEMPLATE(BOOL, STLFunctionLike, __VA_ARGS__)
+			EXPECT_STLFUNLIKE(TRUE, NormalStdFun);
+			EXPECT_STLFUNLIKE(TRUE, ArgsDiffStdFun);
+			EXPECT_STLFUNLIKE(TRUE, NormalCallable);
+			EXPECT_STLFUNLIKE(TRUE, CallableT2<void(int, float)>);
+			EXPECT_STLFUNLIKE(TRUE, CallableT2<void(int, float), DummyStruct>);
+			EXPECT_STLFUNLIKE(FALSE, NormalPtrFun);
+			EXPECT_STLFUNLIKE(FALSE, PtrFunNoexcept);
+			EXPECT_STLFUNLIKE(FALSE, VariadicPtrFun);
+			EXPECT_STLFUNLIKE(FALSE, NormalVariadicPtrFun);
+			EXPECT_STLFUNLIKE(FALSE, ArgsDiffVariadicPtrFun);
+			EXPECT_STLFUNLIKE(FALSE, Sig);
+			EXPECT_STLFUNLIKE(FALSE, ResDiffSig);
+			EXPECT_STLFUNLIKE(FALSE, ResDiffVariadicSig);
+			EXPECT_STLFUNLIKE(FALSE, ExpectedVariadicSignature);
+			EXPECT_STLFUNLIKE(FALSE, RegularLambda);
+			EXPECT_STLFUNLIKE(FALSE, NormalMember);
+			EXPECT_STLFUNLIKE(FALSE, std::vector<void(int, float)>);
+#undef EXPECT_STLFUNLIKE
 		}
 
 		TEST_F(ParsableConceptTest, TestDirectInvocable) {
