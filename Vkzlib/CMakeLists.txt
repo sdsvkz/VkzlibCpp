@@ -24,22 +24,31 @@ if (MSVC)
 endif()
 
 target_include_directories(vkzlib INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-include(CTest)
-
 if (BUILD_TESTING)
-
   add_subdirectory("test")
-
 endif()
+
+include(GNUInstallDirs)
+
+install(
+    DIRECTORY "vkzlib/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/vkzlib"
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp"
+)
 
 install(
     TARGETS vkzlib
     EXPORT vkzlibTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT vkzlibTargets
+    NAMESPACE vkzlib::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/vkzlib
 )
