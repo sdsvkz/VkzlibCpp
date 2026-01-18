@@ -12,13 +12,12 @@
 namespace vkz::mpl::function {
 
 	namespace Type {
-		enum class SignatureContainer : signed char {
-			Signature,
+		enum class NonInvocable : signed char {
 		};
 
 		enum class DirectInvocable : signed char {
+			Signature,
 			FunctionPointer,
-			// TODO: FunctionReference,
 			STLFunctionLike,
 			MonomorphicFunctor,
 		};
@@ -28,7 +27,7 @@ namespace vkz::mpl::function {
 		};
 
 		template<typename T>
-		concept ParsableTypeEnum = AnyOf<T, SignatureContainer, DirectInvocable, IndirectInvocable>;
+		concept ParsableTypeEnum = AnyOf<T, NonInvocable, DirectInvocable, IndirectInvocable>;
 	}
 
 	namespace Property {
@@ -158,6 +157,11 @@ namespace vkz::mpl::function {
 	template<ConceptName T>																\
 	constexpr auto NoexceptHelperName = ParserTraitName<T>::_VKZLIB_NOEX;
 
+	/* NOTE: (Generate specifications)
+	 *	 1. Create a macro that will expand into the target type.
+	 *		Use `VKZLIB_PP_SIGNATURE_UNTAG` to expand a tag into qualifiers.
+	 *		Note that `VAR_TAG` expands to `, ...`
+	 */
 #define VKZLIB_FUNCTION_SIGNATURE_TYPE(									\
 	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG									\
 )																		\
@@ -168,6 +172,11 @@ namespace vkz::mpl::function {
 
 	// ============ Function Signature ============
 
+	/* NOTE: (Generate specifications)
+	 *	 2. Create a macro that will expand into a specification.
+	 *		You can combine `VKZLIB_PP_IF` and `VKZLIB_PP_SIGNATURE_IS_*` macros
+	 *		to branch contents based on tags
+	 */
 #define VKZLIB_DEFINE_PARSE_FUNCTION_SIGNATURE(				\
 	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
 )															\
@@ -178,7 +187,7 @@ namespace vkz::mpl::function {
 	)> : std::true_type										\
 	{														\
 		static constexpr auto _VKZLIB_P_T =					\
-			Type::SignatureContainer::Signature;			\
+			Type::DirectInvocable::Signature;				\
 		using _VKZLIB_N_T = VKZLIB_FUNCTION_SIGNATURE_TYPE(	\
 			VAR_TAG,										\
 			VKZLIB_PP_SIGNATURE_NONE_TAG,					\
@@ -190,6 +199,9 @@ namespace vkz::mpl::function {
 		)													\
 	};
 
+	/* NOTE: (Generate specifications)
+	 *	 3. This will apply all combinations of tags to your higher-order macro
+	 */
 	VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT(VKZLIB_DEFINE_PARSE_FUNCTION_SIGNATURE)
 
 #undef VKZLIB_DEFINE_PARSE_FUNCTION_SIGNATURE
@@ -225,6 +237,9 @@ namespace vkz::mpl::function {
 	};															\
 )
 
+	/* NOTE: (Generate specifications)
+	 *	 This is what you can do if you don't want to generate some specifications.
+	 */
 #define VKZLIB_DEFINE_PARSE_FUNCTION_POINTER(				\
 	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
 )															\
@@ -332,11 +347,21 @@ namespace vkz::mpl::function {
 
 	// ============ Monomorphic Functor ============
 
-	template <MonomorphicFunctor L>
+	template<MonomorphicFunctor L>
 	struct parse<L> : parse<decltype(&L::operator())> {
 		static constexpr auto _VKZLIB_P_T =
 			Type::DirectInvocable::MonomorphicFunctor;
 		using _VKZLIB_N_T = void;
+	};
+
+	// ============ Forward qualified types ============
+
+	template<typename T>
+		requires (!std::same_as<std::remove_cvref_t<T>, T>)
+	struct parse<T> : parse<std::remove_cvref_t<T>> {
+		using _VKZLIB_N_T = std::enable_if_t<
+			parse<std::remove_cvref_t<T>>::value,
+			dup_cvref_t<T, typename parse<std::remove_cvref_t<T>>::_VKZLIB_N_T>>;
 	};
 
 	// ============ Helpers (Common) ============
@@ -452,7 +477,6 @@ namespace vkz::mpl::function {
 			NonCV<T> && NonRef<T> && !NoThrow<T>;
 	}
 
-
 	// ============ Helpers (Concrete Parsable Type) ============
 
 	/**
@@ -462,8 +486,8 @@ namespace vkz::mpl::function {
 		// Categories
 
 		template<typename T>
-		concept SignatureContainer = Parsable<T> &&
-			std::same_as<category_of_t<T>, enum SignatureContainer>;
+		concept NonInvocable = Parsable<T> &&
+			std::same_as<category_of_t<T>, enum NonInvocable>;
 
 		template<typename T>
 		concept DirectInvocable = Parsable<T> &&
@@ -476,11 +500,11 @@ namespace vkz::mpl::function {
 		// Concrete types
 
 		/**
-		 * @brief Types with the normal form `R(Args...)`
+		 * @brief Types like `R(Args...)`
 		 */
 		template<typename T>
 		concept Signature = Parsable<T> &&
-			isAnyTypeOf<T>(SignatureContainer::Signature);
+			isAnyTypeOf<T>(DirectInvocable::Signature);
 
 		template<typename T>
 		concept FunctionPointer = Parsable<T> &&
