@@ -157,7 +157,7 @@ namespace vkz::mpl::function {
 	template<ConceptName T>																\
 	constexpr auto NoexceptHelperName = ParserTraitName<T>::_VKZLIB_NOEX;
 
-	/* NOTE: (Generate specifications)
+	/* Generate specifications:
 	 *	 1. Create a macro that will expand into the target type.
 	 *		Use `VKZLIB_PP_SIGNATURE_UNTAG` to expand a tag into qualifiers.
 	 *		Note that `VAR_TAG` expands to `, ...`
@@ -172,7 +172,7 @@ namespace vkz::mpl::function {
 
 	// ============ Function Signature ============
 
-	/* NOTE: (Generate specifications)
+	/* Generate specifications:
 	 *	 2. Create a macro that will expand into a specification.
 	 *		You can combine `VKZLIB_PP_IF` and `VKZLIB_PP_SIGNATURE_IS_*` macros
 	 *		to branch contents based on tags
@@ -199,7 +199,7 @@ namespace vkz::mpl::function {
 		)													\
 	};
 
-	/* NOTE: (Generate specifications)
+	/* Generate specifications:
 	 *	 3. This will apply all combinations of tags to your higher-order macro
 	 */
 	VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT(VKZLIB_DEFINE_PARSE_FUNCTION_SIGNATURE)
@@ -237,7 +237,7 @@ namespace vkz::mpl::function {
 	};															\
 )
 
-	/* NOTE: (Generate specifications)
+	/* Generate specifications:
 	 *	 This is what you can do if you don't want to generate some specifications.
 	 */
 #define VKZLIB_DEFINE_PARSE_FUNCTION_POINTER(				\
