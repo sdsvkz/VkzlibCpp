@@ -1,0 +1,111 @@
+#ifndef VKZLIB_MPL_PREPROCESSOR_SIGNATURE_MAP_SYNTAX_PRODUCT_HPP
+#define VKZLIB_MPL_PREPROCESSOR_SIGNATURE_MAP_SYNTAX_PRODUCT_HPP
+
+#include <vkzlib/mpl/preprocessor/signature/tag.hpp>
+
+// Applied exception specification: (none), noexcept
+#define _VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(	\
+	CONSTRUCTOR_MACRO,										\
+	VAR_TAG, CV_TAG, REF_TAG								\
+)															\
+	CONSTRUCTOR_MACRO(										\
+		VAR_TAG, CV_TAG, REF_TAG,							\
+		VKZLIB_PP_SIGNATURE_NONE_TAG						\
+	)														\
+	CONSTRUCTOR_MACRO(										\
+		VAR_TAG, CV_TAG, REF_TAG,							\
+		VKZLIB_PP_SIGNATURE_NOEXCEPT_TAG					\
+	)
+
+// Applied ref-qualification: (none), &, &&
+#define _VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(	\
+	CONSTRUCTOR_MACRO,										\
+	VAR_TAG, CV_TAG											\
+)															\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(		\
+		CONSTRUCTOR_MACRO, VAR_TAG, CV_TAG,					\
+		VKZLIB_PP_SIGNATURE_NONE_TAG						\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(		\
+		CONSTRUCTOR_MACRO, VAR_TAG, CV_TAG,					\
+		VKZLIB_PP_SIGNATURE_LVALUE_TAG						\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_NOEX(		\
+		CONSTRUCTOR_MACRO, VAR_TAG, CV_TAG,					\
+		VKZLIB_PP_SIGNATURE_RVALUE_TAG						\
+	)
+
+// Applied cv-qualification: (none), const, volatile, const volatile
+#define _VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_CV(	\
+	CONSTRUCTOR_MACRO,										\
+	VAR_TAG													\
+)															\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_NONE_TAG				\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_CONST_TAG				\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_VOLATILE_TAG			\
+	)														\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_REF(		\
+		CONSTRUCTOR_MACRO,									\
+		VAR_TAG, VKZLIB_PP_SIGNATURE_CONST_VOLATILE_TAG		\
+	)
+
+/**
+* @brief
+* Apply all combinations of cv, ref, noexcept, ellipsis (C Variadic), in the form of tags, to supplied macro
+*
+* Use `VKZLIB_PP_SIGNATURE_UNTAG` to expand tag
+*
+* `NOEX_TAG`:
+*
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
+*
+* - VKZLIB_PP_SIGNATURE_NOEXCEPT_TAG -> noexcept
+*
+* `REF_TAG`:
+*
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
+*
+* - VKZLIB_PP_SIGNATURE_LVALUE_TAG -> &
+*
+* - VKZLIB_PP_SIGNATURE_RVALUE_TAG -> &&
+*
+* `CV_TAG`:
+*
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
+*
+* - VKZLIB_PP_SIGNATURE_CONST_TAG -> const
+*
+* - VKZLIB_PP_SIGNATURE_VOLATILE_TAG -> volatile
+*
+* - VKZLIB_PP_SIGNATURE_CONST_VOLATILE_TAG -> const volatile
+*
+* `VAR_TAG`:
+*
+* - VKZLIB_PP_SIGNATURE_NONE_TAG -> (none)
+*
+* - VKZLIB_PP_SIGNATURE_VARIADIC_TAG -> , ...
+*
+* This will generate 2 * 3 * 4 * 2 = 48 specializations
+*
+* @param CONSTRUCTOR_MACRO Macro to apply, with parameters:
+*	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG
+*/
+#define VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT(CONSTRUCTOR_MACRO)		\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_CV(					\
+		CONSTRUCTOR_MACRO,												\
+		VKZLIB_PP_SIGNATURE_NONE_TAG									\
+	)																	\
+	_VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT_IMPL_CV(					\
+		CONSTRUCTOR_MACRO,												\
+		VKZLIB_PP_SIGNATURE_VARIADIC_TAG								\
+	)
+
+#endif // VKZLIB_MPL_PREPROCESSOR_SIGNATURE_MAP_SYNTAX_PRODUCT_HPP

@@ -11,6 +11,7 @@ enable_testing()
 
 add_executable("LibTest"
 	"test.cpp"
+		common.h
 )
 
 set_target_properties("LibTest"

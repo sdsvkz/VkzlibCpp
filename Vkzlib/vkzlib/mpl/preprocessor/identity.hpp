@@ -1,0 +1,9 @@
+#ifndef VKZLIB_MPL_PREPROCESSOR_IDENTITY_HPP
+#define VKZLIB_MPL_PREPROCESSOR_IDENTITY_HPP
+
+/**
+ * @brief Leave the argument unchanged
+ */
+#define VKZLIB_PP_IDENTITY(X) X
+
+#endif // VKZLIB_MPL_PREPROCESSOR_IDENTITY_HPP

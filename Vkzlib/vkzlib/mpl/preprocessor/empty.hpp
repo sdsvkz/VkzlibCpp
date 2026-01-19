@@ -1,0 +1,9 @@
+#ifndef VKZLIB_MPL_PREPROCESSOR_EMPTY_HPP
+#define VKZLIB_MPL_PREPROCESSOR_EMPTY_HPP
+
+/**
+ * @brief Expands to nothing
+ */
+#define VKZLIB_PP_EMPTY()
+
+#endif // VKZLIB_MPL_PREPROCESSOR_EMPTY_HPP
