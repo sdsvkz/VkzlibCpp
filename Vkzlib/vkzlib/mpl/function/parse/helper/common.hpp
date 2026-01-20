@@ -12,7 +12,7 @@ namespace vkz::mpl::function::parse {
     concept Parsable = parse<T>::value;
 
     template<Parsable T>
-    constexpr auto type_of = parse<T>::_VKZLIB_P_T;
+    inline constexpr auto type_of = parse<T>::_VKZLIB_P_T;
 
     template<Parsable T>
     using category_of_t = std::remove_cvref_t<decltype(type_of<T>)>;
@@ -42,16 +42,16 @@ namespace vkz::mpl::function::parse {
     using args_of_t = parse<T>::template _VKZLIB_ARGS_PACK_T<Pack>;
 
     template<Parsable T>
-    constexpr auto variadic_type_of = parse<T>::_VKZLIB_VAR;
+    inline constexpr auto variadic_type_of = parse<T>::_VKZLIB_VAR;
 
     template<Parsable T>
-    constexpr auto cv_qualifier_of = parse<T>::_VKZLIB_CV;
+    inline constexpr auto cv_qualifier_of = parse<T>::_VKZLIB_CV;
 
     template<Parsable T>
-    constexpr auto ref_qualifier_of = parse<T>::_VKZLIB_REF;
+    inline constexpr auto ref_qualifier_of = parse<T>::_VKZLIB_REF;
 
     template<Parsable T>
-    constexpr auto exception_qualifier_of = parse<T>::_VKZLIB_NOEX;
+    inline constexpr auto exception_qualifier_of = parse<T>::_VKZLIB_NOEX;
 
     /**
      * @note Lambda is not normalizable
