@@ -39,10 +39,10 @@ namespace Test::vkz::mpl {
 	}
 
 	template<template<typename, typename> typename Dup, typename From, typename To, typename Expect>
-	constexpr bool _base_same_dup_v = std::same_as<typename Dup<From, To>::type, Expect>;
+	inline constexpr bool _base_same_dup_v = std::same_as<typename Dup<From, To>::type, Expect>;
 
 	template<typename From, typename To, typename Expect>
-	constexpr bool same_dup_reference_v = _base_same_dup_v<dup_reference, From, To, Expect>;
+	inline constexpr bool same_dup_reference_v = _base_same_dup_v<dup_reference, From, To, Expect>;
 
 	TEST(MplCoreTest, TestDupReference) {
 #define EXPECT_DUP_REFERENCE_SAME(...) EXPECT_TEMPLATE(TRUE, same_dup_reference_v, __VA_ARGS__)
@@ -1395,9 +1395,10 @@ namespace Test::vkz::mpl {
 			EXPECT_TEMPLATE(TRUE, SameArgsAs, NormalPtrFun, RefFunNoexcept);
 			EXPECT_TEMPLATE(TRUE, SameArgsAs, RegularLambda, ResDiffLambda);
 			EXPECT_TEMPLATE(TRUE, SameArgsAs, ResDiffLambda, ReferencedLambda);
-			EXPECT_TEMPLATE(FALSE, SameArgsAs, NormalStdFun, ArgsDiffStdFun);
-			EXPECT_TEMPLATE(FALSE, SameArgsAs, NormalCallable, ArgsDiffCallable);
-			EXPECT_TEMPLATE(FALSE, SameArgsAs, NormalPtrFun, NormalVariadicPtrFun);
+
+			EXPECT_TEMPLATE(FALSE, SameArgsAs, Sig, ArgsDiffStdFun);
+			EXPECT_TEMPLATE(FALSE, SameArgsAs, Sig, ArgsDiffCallable);
+			EXPECT_TEMPLATE(FALSE, SameArgsAs, Sig, NormalVariadicPtrFun);
 		}
 
 		TEST_F(HigherLevelUtilitiesTest, TestSameResultAs) {
@@ -1478,5 +1479,8 @@ TEST(UseTest, TestFn) {
 	auto f = [](int x, float y) {
 		std::printf("%d, %.2f", x, y);
 	};
-	testFn<void(int, float)>(f);
+	using FunctionTypeA = decltype(f);
+	using SignatureB = void(int, float);
+
+	static_assert(Fn<FunctionTypeA, SignatureB>);
 }
