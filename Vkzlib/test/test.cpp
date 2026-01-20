@@ -1461,22 +1461,14 @@ namespace Test::vkz::mpl {
 #undef EXPECT_FN
 		}
 
-
-
-
 	}
 }
 
 using namespace ::vkz;
 using mpl::function::Fn;
 
-template <typename S, Fn<S> F>
-void testFn(F f, const int x = 114, const float y = 5.14) {
-	f(x, y);
-}
-
 TEST(UseTest, TestFn) {
-	auto f = [](int x, float y) {
+	[[maybe_unused]] auto f = [](int x, float y) {
 		std::printf("%d, %.2f", x, y);
 	};
 	using FunctionTypeA = decltype(f);
