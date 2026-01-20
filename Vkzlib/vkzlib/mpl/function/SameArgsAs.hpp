@@ -13,6 +13,15 @@
 
 namespace vkz::mpl::function {
     namespace _detail {
+        template<typename... Ts>
+        consteval std::size_t _min(std::size_t x, Ts... xs) {
+            std::size_t m = x;
+            ((m = m < xs ? m : xs), ...);
+            return m;
+        }
+
+        inline constexpr std::size_t _NPOS = std::numeric_limits<std::size_t>::max();
+
         /**
          * @brief Find the index of the first mismatched parameter
          *
@@ -21,15 +30,31 @@ namespace vkz::mpl::function {
         template<typename F, typename G,
             template <typename...> typename FPack,
             template <typename...> typename GPack>
-        consteval decltype(auto) _findIndexOfMismatched() {
-            constexpr auto MAX = std::numeric_limits<std::size_t>::max();
+        consteval std::size_t _findIndexOfMismatched() {
+            constexpr std::size_t MAX = _NPOS;
             return []<std::size_t... Is>(std::index_sequence<Is...>) {
-                return std::min({ MAX, (!std::same_as<
+                return _min(MAX, (!std::same_as<
                     tpl::fst::nth_tparam_of_t<Is, parse::args_of_t<F, FPack>>,
                     tpl::fst::nth_tparam_of_t<Is, parse::args_of_t<G, GPack>>
-                > ? Is : MAX)... });
+                > ? Is : MAX)...);
             }(std::make_index_sequence<tpl::fst::tparam_count_v<parse::args_of_t<F, FPack>>>());
         }
+
+        /**
+         * @brief Wrapper of `tpl::fst::nth_tparam_of_t`. SHUT THE FUCK UP MSVC
+         *
+         * @note If I don't do this, MSVC will instantiate `nth_tparam_of_t` with `_NPOS` and blows me up.
+         *       I mean what the fuck are you thinking about to instantiate a unreached template?
+         */
+        template<std::size_t POS, typename Args>
+        struct _Nth {
+            using type = tpl::fst::nth_tparam_of_t<POS, Args>;
+        };
+
+        template<typename Args>
+        struct _Nth<_NPOS, Args> {
+            using type = std::void_t<>;
+        };
 
         /**
          * @brief Get the first pair of mismatched parameter.
@@ -43,46 +68,64 @@ namespace vkz::mpl::function {
             template <typename...> typename GPack,
             std::size_t NOTE_SIZE,
             const char NOTE[NOTE_SIZE],
-            std::size_t Position>
+            std::size_t POS>
         struct _RetrieveMismatchedPair {
-            using fst = tpl::fst::nth_tparam_of_t<Position, parse::args_of_t<F, FPack>>;
-            using snd = tpl::fst::nth_tparam_of_t<Position, parse::args_of_t<G, GPack>>;
+            using fst = _Nth<POS, parse::args_of_t<F, FPack>>::type;
+            using snd = _Nth<POS, parse::args_of_t<G, GPack>>::type;
         };
+
+        // /**
+        //  * @brief Mismatched case
+        //  */
+        // template<typename F, typename G,
+        //     template <typename...> typename FPack,
+        //     template <typename...> typename GPack,
+        //     std::size_t NOTE_SIZE,
+        //     const char NOTE[NOTE_SIZE],
+        //     std::size_t POS>
+        // struct _RetrieveMismatchedPair<F, G, FPack, GPack, NOTE_SIZE, NOTE, POS, true> {
+        //     using fst = tpl::fst::nth_tparam_of_t<POS, parse::args_of_t<F, FPack>>;
+        //     using snd = tpl::fst::nth_tparam_of_t<POS, parse::args_of_t<G, GPack>>;
+        // };
+        //
+        // /**
+        //  * @brief All matched case
+        //  */
+        // template<typename F, typename G,
+        //     template <typename...> typename FPack,
+        //     template <typename...> typename GPack,
+        //     std::size_t NOTE_SIZE,
+        //     const char NOTE[NOTE_SIZE],
+        //     std::size_t POS>
+        // struct _RetrieveMismatchedPair<F, G, FPack, GPack, NOTE_SIZE, NOTE, POS, false> {
+        //     using fst = std::void_t<>;
+        //     using snd = std::void_t<>;
+        // };
 
         /**
          * @brief Message to highlight index of mismatched parameter
          */
-        inline constexpr char ARGS_DIFF_INDEX_NOTE[] = "!!!NOTE!!!: Position of mismatched parameter (starts from 0): ";
+        inline constexpr char _ARGS_DIFF_INDEX_NOTE[] = "!!!NOTE!!!: Position of mismatched parameter (starts from 0): ";
 
         /**
-         * @brief All matched case
+         * @brief Message to highlight mismatched parameter type
          */
-        template<typename F, typename G,
-            template <typename...> typename FPack,
-            template <typename...> typename GPack,
-            std::size_t NOTE_SIZE,
-            const char NOTE[NOTE_SIZE]>
-        struct _RetrieveMismatchedPair<F, G, FPack, GPack, NOTE_SIZE, NOTE, std::numeric_limits<std::size_t>::max()> {
-            using fst = std::void_t<>;
-            using snd = std::void_t<>;
-        };
-
-        inline constexpr char ARGS_DIFF_TYPE_NOTE[] = "!!!NOTE!!!: When matching: ";
+        inline constexpr char _ARGS_DIFF_TYPE_NOTE[] = "!!!NOTE!!!: When matching: ";
 
         /**
          * @brief Alias for `std::same_as` to hold additional note message
          */
         template<std::size_t N, const char NOTE[N], typename T, typename U>
-        concept Match = std::same_as<T, U>;
+        concept _Match = std::same_as<T, U>;
 
         template<typename F, typename G,
             template <typename...> typename FPack,
             template <typename...> typename GPack,
-            typename FailedPair = _RetrieveMismatchedPair<
+            typename MismatchedPair = _RetrieveMismatchedPair<
                 F, G, FPack, GPack,
-                sizeof(ARGS_DIFF_INDEX_NOTE), ARGS_DIFF_INDEX_NOTE,
+                sizeof(_ARGS_DIFF_INDEX_NOTE), _ARGS_DIFF_INDEX_NOTE,
                 _detail::_findIndexOfMismatched<F, G, FPack, GPack>()>>
-        concept _SameArgs = Match<sizeof(ARGS_DIFF_TYPE_NOTE), ARGS_DIFF_TYPE_NOTE, typename FailedPair::fst, typename FailedPair::snd>;
+        concept _SameArgs = _Match<sizeof(_ARGS_DIFF_TYPE_NOTE), _ARGS_DIFF_TYPE_NOTE, typename MismatchedPair::fst, typename MismatchedPair::snd>;
     }
 
     /**
