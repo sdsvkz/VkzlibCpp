@@ -14,6 +14,9 @@ namespace vkz::mpl::pack {
         static constexpr std::size_t size = sizeof...(Ts);
     };
 
+    /**
+     * @brief Simple struct for holding template parameter pack.
+     */
     template<typename First, typename... Rest>
     struct Pack<First, Rest...> {
         static constexpr std::size_t size = 1 + sizeof...(Rest);

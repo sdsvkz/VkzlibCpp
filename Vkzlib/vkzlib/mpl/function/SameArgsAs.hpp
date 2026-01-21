@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <concepts>
 
+#include <vkzlib/mpl/common/internal/NPOS.hpp>
+#include <vkzlib/mpl/common/ce/findFirstFor.hpp>
 #include <vkzlib/mpl/function/internal/DefaultPack.hpp>
 #include <vkzlib/mpl/function/parse/helper/common.hpp>
 #include <vkzlib/mpl/function/parse/property/concepts.hpp>
@@ -13,14 +15,10 @@
 
 namespace vkz::mpl::function {
     namespace _detail {
-        template<typename... Ts>
-        consteval std::size_t _min(std::size_t x, Ts... xs) {
-            std::size_t m = x;
-            ((m = m < xs ? m : xs), ...);
-            return m;
-        }
+        inline constexpr std::size_t _NPOS = mpl::internal::NPOS;
 
-        inline constexpr std::size_t _NPOS = std::numeric_limits<std::size_t>::max();
+        template<size_t N>
+        consteval std::size_t id(std::integral_constant<std::size_t, N> x) { return N; }
 
         /**
          * @brief Find the index of the first mismatched parameter
@@ -31,13 +29,15 @@ namespace vkz::mpl::function {
             template <typename...> typename FPack,
             template <typename...> typename GPack>
         consteval std::size_t _findIndexOfMismatched() {
-            constexpr std::size_t MAX = _NPOS;
-            return []<std::size_t... Is>(std::index_sequence<Is...>) {
-                return _min(MAX, (!std::same_as<
-                    tpl::fst::nth_tparam_of_t<Is, parse::args_of_t<F, FPack>>,
-                    tpl::fst::nth_tparam_of_t<Is, parse::args_of_t<G, GPack>>
-                > ? Is : MAX)...);
-            }(std::make_index_sequence<tpl::fst::tparam_count_v<parse::args_of_t<F, FPack>>>());
+            constexpr auto TPARAM_COUNT = tpl::fst::tparam_count_v<parse::args_of_t<F, FPack>>;
+            return ce::findFirstFor<TPARAM_COUNT, []<std::size_t I>
+                (std::integral_constant<std::size_t, I>) -> bool {
+                    return !std::same_as<
+                        tpl::fst::nth_tparam_of_t<I, parse::args_of_t<F, FPack>>,
+                        tpl::fst::nth_tparam_of_t<I, parse::args_of_t<G, GPack>>
+                    >;
+                }
+            >();
         }
 
         /**
@@ -74,34 +74,6 @@ namespace vkz::mpl::function {
             using snd = _Nth<POS, parse::args_of_t<G, GPack>>::type;
         };
 
-        // /**
-        //  * @brief Mismatched case
-        //  */
-        // template<typename F, typename G,
-        //     template <typename...> typename FPack,
-        //     template <typename...> typename GPack,
-        //     std::size_t NOTE_SIZE,
-        //     const char NOTE[NOTE_SIZE],
-        //     std::size_t POS>
-        // struct _RetrieveMismatchedPair<F, G, FPack, GPack, NOTE_SIZE, NOTE, POS, true> {
-        //     using fst = tpl::fst::nth_tparam_of_t<POS, parse::args_of_t<F, FPack>>;
-        //     using snd = tpl::fst::nth_tparam_of_t<POS, parse::args_of_t<G, GPack>>;
-        // };
-        //
-        // /**
-        //  * @brief All matched case
-        //  */
-        // template<typename F, typename G,
-        //     template <typename...> typename FPack,
-        //     template <typename...> typename GPack,
-        //     std::size_t NOTE_SIZE,
-        //     const char NOTE[NOTE_SIZE],
-        //     std::size_t POS>
-        // struct _RetrieveMismatchedPair<F, G, FPack, GPack, NOTE_SIZE, NOTE, POS, false> {
-        //     using fst = std::void_t<>;
-        //     using snd = std::void_t<>;
-        // };
-
         /**
          * @brief Message to highlight index of mismatched parameter
          */
@@ -135,8 +107,8 @@ namespace vkz::mpl::function {
      * @tparam GPack Same as `FPack`, but for `G`
      */
     template<typename F, typename G,
-        template <typename...> typename FPack = DefaultPack,
-        template <typename...> typename GPack = DefaultPack>
+        template <typename...> typename FPack = internal::DefaultPack,
+        template <typename...> typename GPack = internal::DefaultPack>
     concept SameArgsAs =
         parse::Parsable<F> &&
         parse::Parsable<G> &&

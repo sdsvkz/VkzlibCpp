@@ -3,9 +3,6 @@
 #
 
 add_library(vkzlib INTERFACE
-    # vkzlib/internal/
-    "vkzlib/internal/begin_shareddefs.h"
-    "vkzlib/internal/end_shareddefs.h"
     # vkzlib/
     "vkzlib/mpl.hpp"
     # vkzlib/mpl/
@@ -25,8 +22,14 @@ add_library(vkzlib INTERFACE
     "vkzlib/mpl/common/dup_volatile.hpp"
     "vkzlib/mpl/common/HasCommonType.hpp"
     "vkzlib/mpl/common/Homogeneous.hpp"
+    # vkzlib/mpl/common/internal/
+    "vkzlib/mpl/common/internal/NPOS.hpp"
+    # vkzlib/mpl/common/ce/
+    "vkzlib/mpl/common/ce/findFirstFor.hpp"
+    "vkzlib/mpl/common/ce/min.hpp"
     # vkzlib/mpl/function/
     "vkzlib/mpl/function/Fn.hpp"
+    "vkzlib/mpl/function/FnRef.hpp"
     "vkzlib/mpl/function/MonomorphicFunctor.hpp"
     "vkzlib/mpl/function/parse.hpp"
     "vkzlib/mpl/function/property.hpp"
@@ -81,6 +84,7 @@ add_library(vkzlib INTERFACE
     # vkzlib/mpl/tpl/fst/
     "vkzlib/mpl/tpl/fst/parse_template_spec.hpp"
     "vkzlib/mpl/tpl/fst/SameTemplateAs.hpp"
+    "vkzlib/mpl/tpl/fst/WithTemplateParams.hpp"
 )
 
 set_target_properties(vkzlib PROPERTIES

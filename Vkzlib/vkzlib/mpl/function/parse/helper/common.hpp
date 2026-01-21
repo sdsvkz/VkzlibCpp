@@ -38,7 +38,7 @@ namespace vkz::mpl::function::parse {
     template<Parsable T>
     using result_of_t = parse<T>::_VKZLIB_R_T;
 
-    template<Parsable T, template <typename...> typename Pack = DefaultPack>
+    template<Parsable T, template <typename...> typename Pack = internal::DefaultPack>
     using args_of_t = parse<T>::template _VKZLIB_ARGS_PACK_T<Pack>;
 
     template<Parsable T>

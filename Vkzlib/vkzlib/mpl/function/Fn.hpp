@@ -10,7 +10,7 @@ namespace vkz::mpl::function {
     /**
      * @brief Direct invocable type with same signature as `G`
      */
-    template<typename F, typename G, template <typename...> typename Pack = DefaultPack>
+    template<typename F, typename G, template <typename...> typename Pack = internal::DefaultPack>
     concept Fn =
         parse::type::DirectInvocable<F> &&
         SameResultAs<F, G> &&

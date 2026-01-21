@@ -3,7 +3,7 @@
 
 #include <vkzlib/mpl/pack/Pack.hpp>
 
-namespace vkz::mpl::function {
+namespace vkz::mpl::function::internal {
     /**
     * @brief Default template type used to store template parameter pack
     * @tparam Ts Template parameter pack to be stored
