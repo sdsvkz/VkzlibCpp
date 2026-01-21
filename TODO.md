@@ -2,6 +2,8 @@
 
 ## High Priority
 - [ ] Docs
+- [ ] WithTemplateParams
+- [ ] FnRef
 
 ## Medium Priority
 
