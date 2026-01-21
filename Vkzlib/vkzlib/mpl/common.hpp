@@ -17,4 +17,7 @@ namespace vkz::mpl {}
 #include <vkzlib/mpl/common/HasCommonType.hpp>
 #include <vkzlib/mpl/common/Homogeneous.hpp>
 
+#include <vkzlib/mpl/common/ce/findFirstFor.hpp>
+#include <vkzlib/mpl/common/ce/min.hpp>
+
 #endif // VKZLIB_MPL_COMMON_HPP

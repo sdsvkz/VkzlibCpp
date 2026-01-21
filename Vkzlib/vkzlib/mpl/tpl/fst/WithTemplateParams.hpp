@@ -15,12 +15,12 @@ namespace vkz::mpl::tpl::fst {
     /**
      * @brief Template specification filled with exactly `Ts`
      */
-    template<typename P, typename... Ts>
-    concept WithTemplateParams = TemplateSpec<P> &&
-        tparam_count_v<P> == sizeof...(Ts) && (
-            sizeof...(Ts) == 0 ||
-            ((nth_tparam_of_t<>))
-        );
+    // template<typename P, typename... Ts>
+    // concept WithTemplateParams = TemplateSpec<P> &&
+    //     tparam_count_v<P> == sizeof...(Ts) && (
+    //         sizeof...(Ts) == 0 ||
+    //         ((nth_tparam_of_t<>))
+    //     );
 }
 
 #endif // VKZLIB_MPL_TPL_FST_WITHTEMPLATEPARAMS_HPP

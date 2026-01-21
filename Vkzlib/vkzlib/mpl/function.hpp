@@ -7,6 +7,7 @@
 namespace vkz::mpl::function {}
 
 #include <vkzlib/mpl/function/Fn.hpp>
+#include <vkzlib/mpl/function/FnRef.hpp>
 #include <vkzlib/mpl/function/MonomorphicFunctor.hpp>
 #include <vkzlib/mpl/function/parse.hpp>
 #include <vkzlib/mpl/function/property.hpp>
