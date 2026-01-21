@@ -11,6 +11,7 @@ endif()
 
 project("Vkzlib" LANGUAGES CXX)
 
+# Unused
 option(VKZLIB_USE_MODULES "Build vkzlib as a C++20 module" OFF)
 
 # Include sub-projects.
