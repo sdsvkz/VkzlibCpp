@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <concepts>
 
-#include <vkzlib/mpl/function/internal/DefaultPack.hpp>
+#include <vkzlib/mpl/common/internal/DefaultPack.hpp>
 #include <vkzlib/mpl/function/parse/parse.hpp>
 
 namespace vkz::mpl::function::parse {

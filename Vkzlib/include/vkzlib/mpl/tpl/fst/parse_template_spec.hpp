@@ -3,23 +3,24 @@
 
 #include <type_traits>
 
-#include <vkzlib/mpl/pack/nth_of.hpp>
+#include <vkzlib/mpl/common/pack/nth_of.hpp>
 
 namespace vkz::mpl::tpl::fst {
-    namespace _impl {
+    namespace _detail {
         template<typename>
-        struct parse_template_spec : std::false_type {};
+        struct _parse_template_spec : std::false_type {};
 
         template<template<typename...> typename _TT, typename... Ts>
-        struct parse_template_spec<_TT<Ts...>> : std::true_type {
-            static constexpr std::size_t argc = sizeof...(Ts);
+        struct _parse_template_spec<_TT<Ts...>> : std::true_type {
+            static_assert(sizeof...(Ts) == 0);
+            static constexpr std::size_t argc = 0;
 
             template<typename... Us>
             using Template = _TT<Us...>;
         };
 
         template<template<typename...> typename _TT, typename T, typename... Ts>
-        struct parse_template_spec<_TT<T, Ts...>> : std::true_type {
+        struct _parse_template_spec<_TT<T, Ts...>> : std::true_type {
             static constexpr std::size_t argc = 1 + sizeof...(Ts);
 
             template<typename U, typename... Us>
@@ -34,26 +35,26 @@ namespace vkz::mpl::tpl::fst {
      * @brief A fully instantiated template
      */
     template<typename T>
-    concept TemplateSpec = _impl::parse_template_spec<T>::value;
+    concept TemplateSpec = _detail::_parse_template_spec<T>::value;
 
     /**
      * @brief How many template parameters the template `TT` CAN (but not necessarily) take
      */
     template<TemplateSpec P>
-    inline constexpr std::size_t tparam_count_v = _impl::parse_template_spec<P>::argc;
+    inline constexpr std::size_t tparam_count_v = _detail::_parse_template_spec<P>::argc;
 
     /**
      * @brief The template (Without proper template signature)
      */
     template<TemplateSpec P, typename... Ts>
-    using template_of_t = _impl::parse_template_spec<P>::template Pack<Ts...>;
+    using template_of_t = _detail::_parse_template_spec<P>::template Pack<Ts...>;
 
     /**
      * @brief N-th type in pack
      */
     template<std::size_t N, TemplateSpec P>
         requires (tparam_count_v<P> != 0)
-    using nth_tparam_of_t = _impl::parse_template_spec<P>::template At<N>;
+    using nth_tparam_of_t = _detail::_parse_template_spec<P>::template At<N>;
 }
 
 #endif // VKZLIB_MPL_TPL_FST_PARSE_TEMPLATE_SPEC_HPP

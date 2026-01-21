@@ -49,10 +49,15 @@ set(VKZLIB_HEADERS
     "include/vkzlib/mpl/common/HasCommonType.hpp"
     "include/vkzlib/mpl/common/Homogeneous.hpp"
     # vkzlib/mpl/common/internal/
+    "include/vkzlib/mpl/common/internal/DefaultPack.hpp"
     "include/vkzlib/mpl/common/internal/NPOS.hpp"
     # vkzlib/mpl/common/ce/
     "include/vkzlib/mpl/common/ce/findFirstFor.hpp"
+    "include/vkzlib/mpl/common/ce/foldl.hpp"
     "include/vkzlib/mpl/common/ce/min.hpp"
+    "include/vkzlib/mpl/common/ce/unroll.hpp"
+    # vkzlib/mpl/common/pack/
+    "include/vkzlib/mpl/common/pack/nth_of.hpp"
     # vkzlib/mpl/function/
     "include/vkzlib/mpl/function/Fn.hpp"
     "include/vkzlib/mpl/function/FnRef.hpp"
@@ -61,8 +66,6 @@ set(VKZLIB_HEADERS
     "include/vkzlib/mpl/function/property.hpp"
     "include/vkzlib/mpl/function/SameArgsAs.hpp"
     "include/vkzlib/mpl/function/SameResultAs.hpp"
-    # vkzlib/mpl/function/internal/
-    "include/vkzlib/mpl/function/internal/DefaultPack.hpp"
     # vkzlib/mpl/function/parse/
     "include/vkzlib/mpl/function/parse/helper.hpp"
     "include/vkzlib/mpl/function/parse/parse.hpp"
@@ -80,15 +83,12 @@ set(VKZLIB_HEADERS
     # vkzlib/mpl/function/property/
     "include/vkzlib/mpl/function/property/enums.hpp"
     # vkzlib/mpl/pack/
-    "include/vkzlib/mpl/pack/nth_of.hpp"
-    "include/vkzlib/mpl/pack/Pack.hpp"
-
+    "include/vkzlib/mpl/common/pack/Pack.hpp"
     # vkzlib/mpl/tpl/
     "include/vkzlib/mpl/tpl/fst.hpp"
     # vkzlib/mpl/tpl/fst/
     "include/vkzlib/mpl/tpl/fst/parse_template_spec.hpp"
     "include/vkzlib/mpl/tpl/fst/SameTemplateAs.hpp"
-    "include/vkzlib/mpl/tpl/fst/WithTemplateParams.hpp"
 )
 
 add_library(vkzlib INTERFACE)

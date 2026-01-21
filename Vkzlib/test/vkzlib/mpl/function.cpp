@@ -10,8 +10,8 @@
 
 namespace MplFunctionTest {
 	using ::vkz::mpl::Homogeneous;
+	using namespace ::vkz::mpl::internal;
 	using namespace ::vkz::mpl::function;
-	using namespace ::vkz::mpl::function::internal;
 
 	struct DummyStruct {};
 

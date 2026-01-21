@@ -1,9 +1,9 @@
-#ifndef VKZLIB_INTERNAL_PACK_PACK_HPP
-#define VKZLIB_INTERNAL_PACK_PACK_HPP
+#ifndef VKZLIB_MPL_COMMON_PACK_PACK_HPP
+#define VKZLIB_MPL_COMMON_PACK_PACK_HPP
 
 #include <cstddef>
 
-#include <vkzlib/mpl/pack/nth_of.hpp>
+#include <vkzlib/mpl/common/pack/nth_of.hpp>
 
 namespace vkz::mpl::pack {
     /**
@@ -26,4 +26,4 @@ namespace vkz::mpl::pack {
     };
 }
 
-#endif // VKZLIB_INTERNAL_PACK_PACK_HPP
+#endif // VKZLIB_MPL_COMMON_PACK_PACK_HPP

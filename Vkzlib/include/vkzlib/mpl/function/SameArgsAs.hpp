@@ -1,25 +1,18 @@
 #ifndef VKZLIB_MPL_FUNCTION_SAMEARGSAS_HPP
 #define VKZLIB_MPL_FUNCTION_SAMEARGSAS_HPP
 
-#include <limits>
-#include <utility>
 #include <type_traits>
 #include <concepts>
 
 #include <vkzlib/mpl/common/internal/NPOS.hpp>
 #include <vkzlib/mpl/common/ce/findFirstFor.hpp>
-#include <vkzlib/mpl/function/internal/DefaultPack.hpp>
+#include <vkzlib/mpl/common/internal/DefaultPack.hpp>
 #include <vkzlib/mpl/function/parse/helper/common.hpp>
 #include <vkzlib/mpl/function/parse/property/concepts.hpp>
 #include <vkzlib/mpl/tpl/fst/parse_template_spec.hpp>
 
 namespace vkz::mpl::function {
     namespace _detail {
-        inline constexpr std::size_t _NPOS = mpl::internal::NPOS;
-
-        template<size_t N>
-        consteval std::size_t id(std::integral_constant<std::size_t, N> x) { return N; }
-
         /**
          * @brief Find the index of the first mismatched parameter
          *
@@ -28,7 +21,7 @@ namespace vkz::mpl::function {
         template<typename F, typename G,
             template <typename...> typename FPack,
             template <typename...> typename GPack>
-        consteval std::size_t _findIndexOfMismatched() {
+        consteval std::size_t _indexOfMismatchedParam() {
             constexpr auto TPARAM_COUNT = tpl::fst::tparam_count_v<parse::args_of_t<F, FPack>>;
             return ce::findFirstFor<TPARAM_COUNT, []<std::size_t I>
                 (std::integral_constant<std::size_t, I>) -> bool {
@@ -52,7 +45,7 @@ namespace vkz::mpl::function {
         };
 
         template<typename Args>
-        struct _Nth<_NPOS, Args> {
+        struct _Nth<mpl::internal::NPOS, Args> {
             using type = std::void_t<>;
         };
 
@@ -96,7 +89,7 @@ namespace vkz::mpl::function {
             typename MismatchedPair = _RetrieveMismatchedPair<
                 F, G, FPack, GPack,
                 sizeof(_ARGS_DIFF_INDEX_NOTE), _ARGS_DIFF_INDEX_NOTE,
-                _detail::_findIndexOfMismatched<F, G, FPack, GPack>()>>
+                _detail::_indexOfMismatchedParam<F, G, FPack, GPack>()>>
         concept _SameArgs = _Match<sizeof(_ARGS_DIFF_TYPE_NOTE), _ARGS_DIFF_TYPE_NOTE, typename MismatchedPair::fst, typename MismatchedPair::snd>;
     }
 

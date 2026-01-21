@@ -3,7 +3,7 @@
 
 #include <vkzlib/mpl/function/SameArgsAs.hpp>
 #include <vkzlib/mpl/function/SameResultAs.hpp>
-#include <vkzlib/mpl/function/internal/DefaultPack.hpp>
+#include <vkzlib/mpl/common/internal/DefaultPack.hpp>
 #include <vkzlib/mpl/function/parse/type/concepts.hpp>
 
 namespace vkz::mpl::function {

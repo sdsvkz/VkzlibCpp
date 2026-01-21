@@ -1,5 +1,5 @@
-#ifndef VKZLIB_INTERNAL_PACK_NTH_OF_HPP
-#define VKZLIB_INTERNAL_PACK_NTH_OF_HPP
+#ifndef VKZLIB_MPL_COMMON_PACK_NTH_OF_HPP
+#define VKZLIB_MPL_COMMON_PACK_NTH_OF_HPP
 
 #include <cstddef>
 
@@ -19,4 +19,4 @@ namespace vkz::mpl::pack {
     using nth_of_t = nth_of<N, First, Rest...>::type;
 }
 
-#endif // VKZLIB_INTERNAL_PACK_NTH_OF_HPP
+#endif // VKZLIB_MPL_COMMON_PACK_NTH_OF_HPP

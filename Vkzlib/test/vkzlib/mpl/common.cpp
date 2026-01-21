@@ -183,3 +183,37 @@ namespace MplCommonTest {
 		EXPECT_TEMPLATE(FALSE, ::vkz::mpl:: Homogeneous, B, C, E);
 	}
 }
+
+namespace MplCommonCeTest {
+	using namespace ::vkz::mpl::ce;
+
+	TEST(MplCommonCeTest, TestFindFirstFor) {
+		constexpr auto V = findFirstFor<10, []<std::size_t I>
+			(std::integral_constant<std::size_t, I>) -> bool {
+				return std::greater<std::size_t>()(I * 2, 5);
+			}
+		>();
+		EXPECT_EQ(V, 3);
+	}
+
+	TEST(MplCommonCeTest, TestFold) {
+		constexpr auto V = foldl<[](const int acc, const int x) -> int {
+			return acc * x + x;
+		}>(1, 3, 5, 2, 4);
+		constexpr auto E1 = 1 * 3 + 3;
+		constexpr auto E2 = E1 * 5 + 5;
+		constexpr auto E3 = E2 * 2 + 2;
+		constexpr auto E4 = E3 * 4 + 4;
+		EXPECT_EQ(V, E4);
+	}
+
+	TEST(MplCommonCeTest, TestUnroll) {
+		constexpr std::size_t INITIAL = 0;
+		constexpr auto V = unroll<10, []<std::size_t I>
+			(const std::size_t acc, std::integral_constant<std::size_t, I>) {
+				return acc + I;
+			}
+		>(INITIAL);
+		EXPECT_EQ(V, 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
+	}
+}

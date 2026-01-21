@@ -1,7 +1,7 @@
 #ifndef VKZLIB_MPL_FUNCTION_FNREF_HPP
 #define VKZLIB_MPL_FUNCTION_FNREF_HPP
 
-#include <vkzlib/mpl/function/internal/DefaultPack.hpp>
+#include <vkzlib/mpl/common/internal/DefaultPack.hpp>
 #include <vkzlib/mpl/function/parse/helper.hpp>
 #include <vkzlib/mpl/function/Fn.hpp>
 

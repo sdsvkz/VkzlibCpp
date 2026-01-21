@@ -18,6 +18,10 @@ namespace vkz::mpl {}
 #include <vkzlib/mpl/common/Homogeneous.hpp>
 
 #include <vkzlib/mpl/common/ce/findFirstFor.hpp>
+#include <vkzlib/mpl/common/ce/foldl.hpp>
 #include <vkzlib/mpl/common/ce/min.hpp>
+#include <vkzlib/mpl/common/ce/unroll.hpp>
+
+#include <vkzlib/mpl/common/pack/nth_of.hpp>
 
 #endif // VKZLIB_MPL_COMMON_HPP
