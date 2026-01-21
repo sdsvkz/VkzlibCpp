@@ -5,7 +5,7 @@
 
 #include <vkzlib/mpl/pack.hpp>
 
-#include <test/common.h>
+#include <common.h>
 
 namespace MplPackTest {
     using namespace ::vkz::mpl::pack;

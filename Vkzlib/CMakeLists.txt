@@ -2,121 +2,129 @@
 # project specific logic here.
 #
 
-add_library(vkzlib INTERFACE
-    # vkzlib/
-    "vkzlib/mpl.hpp"
-    # vkzlib/mpl/
-    "vkzlib/mpl/common.hpp"
-    "vkzlib/mpl/function.hpp"
-    "vkzlib/mpl/pack.hpp"
-    "vkzlib/mpl/preprocessor.hpp"
-    "vkzlib/mpl/tpl.hpp"
-    # vkzlib/mpl/common/
-    "vkzlib/mpl/common/AnyOf.hpp"
-    "vkzlib/mpl/common/Class.hpp"
-    "vkzlib/mpl/common/conditionalCall.hpp"
-    "vkzlib/mpl/common/CString.hpp"
-    "vkzlib/mpl/common/dup_const.hpp"
-    "vkzlib/mpl/common/dup_cvref.hpp"
-    "vkzlib/mpl/common/dup_reference.hpp"
-    "vkzlib/mpl/common/dup_volatile.hpp"
-    "vkzlib/mpl/common/HasCommonType.hpp"
-    "vkzlib/mpl/common/Homogeneous.hpp"
-    # vkzlib/mpl/common/internal/
-    "vkzlib/mpl/common/internal/NPOS.hpp"
-    # vkzlib/mpl/common/ce/
-    "vkzlib/mpl/common/ce/findFirstFor.hpp"
-    "vkzlib/mpl/common/ce/min.hpp"
-    # vkzlib/mpl/function/
-    "vkzlib/mpl/function/Fn.hpp"
-    "vkzlib/mpl/function/FnRef.hpp"
-    "vkzlib/mpl/function/MonomorphicFunctor.hpp"
-    "vkzlib/mpl/function/parse.hpp"
-    "vkzlib/mpl/function/property.hpp"
-    "vkzlib/mpl/function/SameArgsAs.hpp"
-    "vkzlib/mpl/function/SameResultAs.hpp"
-    # vkzlib/mpl/function/internal/
-    "vkzlib/mpl/function/internal/DefaultPack.hpp"
-    # vkzlib/mpl/function/parse/
-    "vkzlib/mpl/function/parse/helper.hpp"
-    "vkzlib/mpl/function/parse/parse.hpp"
-    "vkzlib/mpl/function/parse/property.hpp"
-    "vkzlib/mpl/function/parse/type.hpp"
-    # vkzlib/mpl/function/parse/helper/
-    "vkzlib/mpl/function/parse/helper/common.hpp"
-    "vkzlib/mpl/function/parse/helper/member_function_pointer.hpp"
-    "vkzlib/mpl/function/parse/helper/stl_function_like.hpp"
-    # vkzlib/mpl/function/parse/property/
-    "vkzlib/mpl/function/parse/property/concepts.hpp"
-    # vkzlib/mpl/function/parse/type/
-    "vkzlib/mpl/function/parse/type/enums.hpp"
-    "vkzlib/mpl/function/parse/type/concepts.hpp"
-    # vkzlib/mpl/function/property/
-    "vkzlib/mpl/function/property/enums.hpp"
-    # vkzlib/mpl/pack/
-    "vkzlib/mpl/pack/nth_of.hpp"
-    "vkzlib/mpl/pack/Pack.hpp"
-    # vkzlib/mpl/preprocessor/
-    "vkzlib/mpl/preprocessor/and.hpp"
-    "vkzlib/mpl/preprocessor/cat.hpp"
-    "vkzlib/mpl/preprocessor/conditional.hpp"
-    "vkzlib/mpl/preprocessor/const.hpp"
-    "vkzlib/mpl/preprocessor/empty.hpp"
-    "vkzlib/mpl/preprocessor/empty_tuple.hpp"
-    "vkzlib/mpl/preprocessor/expand_if.hpp"
-    "vkzlib/mpl/preprocessor/identity.hpp"
-    "vkzlib/mpl/preprocessor/is_empty.hpp"
-    "vkzlib/mpl/preprocessor/is_zero.hpp"
-    "vkzlib/mpl/preprocessor/not.hpp"
-    "vkzlib/mpl/preprocessor/or.hpp"
-    "vkzlib/mpl/preprocessor/pick_second_or.hpp"
-    "vkzlib/mpl/preprocessor/signature.hpp"
-    "vkzlib/mpl/preprocessor/unpack_tuple.hpp"
-    "vkzlib/mpl/preprocessor/va_opt.hpp"
-    # vkzlib/mpl/preprocessor/signature/
-    "vkzlib/mpl/preprocessor/signature/is_tag.hpp"
-    "vkzlib/mpl/preprocessor/signature/map_syntax_product.hpp"
-    "vkzlib/mpl/preprocessor/signature/tag.hpp"
-    "vkzlib/mpl/preprocessor/signature/tag_to_enum.hpp"
-    "vkzlib/mpl/preprocessor/signature/untag.hpp"
-    # vkzlib/mpl/tpl/
-    "vkzlib/mpl/tpl/fst.hpp"
-    # vkzlib/mpl/tpl/fst/
-    "vkzlib/mpl/tpl/fst/parse_template_spec.hpp"
-    "vkzlib/mpl/tpl/fst/SameTemplateAs.hpp"
-    "vkzlib/mpl/tpl/fst/WithTemplateParams.hpp"
-)
+if(VKZLIB_USE_MODULES)
 
-set_target_properties(vkzlib PROPERTIES
-    INTERFACE_CXX_STANDARD 20
-    INTERFACE_CXX_STANDARD_REQUIRED ON
-    INTERFACE_CXX_EXTENSIONS OFF
-)
+else()
 
-if (MSVC)
+  add_library(vkzlib INTERFACE
+      # vkzlib/
+      "include/vkzlib/mpl.hpp"
+      # vkzlib/mpl/
+      "include/vkzlib/mpl/common.hpp"
+      "include/vkzlib/mpl/function.hpp"
+      "include/vkzlib/mpl/pack.hpp"
+      "include/vkzlib/mpl/preprocessor.hpp"
+      "include/vkzlib/mpl/tpl.hpp"
+      # vkzlib/mpl/common/
+      "include/vkzlib/mpl/common/AnyOf.hpp"
+      "include/vkzlib/mpl/common/Class.hpp"
+      "include/vkzlib/mpl/common/conditionalCall.hpp"
+      "include/vkzlib/mpl/common/CString.hpp"
+      "include/vkzlib/mpl/common/dup_const.hpp"
+      "include/vkzlib/mpl/common/dup_cvref.hpp"
+      "include/vkzlib/mpl/common/dup_reference.hpp"
+      "include/vkzlib/mpl/common/dup_volatile.hpp"
+      "include/vkzlib/mpl/common/HasCommonType.hpp"
+      "include/vkzlib/mpl/common/Homogeneous.hpp"
+      # vkzlib/mpl/common/internal/
+      "include/vkzlib/mpl/common/internal/NPOS.hpp"
+      # vkzlib/mpl/common/ce/
+      "include/vkzlib/mpl/common/ce/findFirstFor.hpp"
+      "include/vkzlib/mpl/common/ce/min.hpp"
+      # vkzlib/mpl/function/
+      "include/vkzlib/mpl/function/Fn.hpp"
+      "include/vkzlib/mpl/function/FnRef.hpp"
+      "include/vkzlib/mpl/function/MonomorphicFunctor.hpp"
+      "include/vkzlib/mpl/function/parse.hpp"
+      "include/vkzlib/mpl/function/property.hpp"
+      "include/vkzlib/mpl/function/SameArgsAs.hpp"
+      "include/vkzlib/mpl/function/SameResultAs.hpp"
+      # vkzlib/mpl/function/internal/
+      "include/vkzlib/mpl/function/internal/DefaultPack.hpp"
+      # vkzlib/mpl/function/parse/
+      "include/vkzlib/mpl/function/parse/helper.hpp"
+      "include/vkzlib/mpl/function/parse/parse.hpp"
+      "include/vkzlib/mpl/function/parse/property.hpp"
+      "include/vkzlib/mpl/function/parse/type.hpp"
+      # vkzlib/mpl/function/parse/helper/
+      "include/vkzlib/mpl/function/parse/helper/common.hpp"
+      "include/vkzlib/mpl/function/parse/helper/member_function_pointer.hpp"
+      "include/vkzlib/mpl/function/parse/helper/stl_function_like.hpp"
+      # vkzlib/mpl/function/parse/property/
+      "include/vkzlib/mpl/function/parse/property/concepts.hpp"
+      # vkzlib/mpl/function/parse/type/
+      "include/vkzlib/mpl/function/parse/type/enums.hpp"
+      "include/vkzlib/mpl/function/parse/type/concepts.hpp"
+      # vkzlib/mpl/function/property/
+      "include/vkzlib/mpl/function/property/enums.hpp"
+      # vkzlib/mpl/pack/
+      "include/vkzlib/mpl/pack/nth_of.hpp"
+      "include/vkzlib/mpl/pack/Pack.hpp"
+      # vkzlib/mpl/preprocessor/
+      "include/vkzlib/mpl/preprocessor/and.hpp"
+      "include/vkzlib/mpl/preprocessor/cat.hpp"
+      "include/vkzlib/mpl/preprocessor/conditional.hpp"
+      "include/vkzlib/mpl/preprocessor/const.hpp"
+      "include/vkzlib/mpl/preprocessor/empty.hpp"
+      "include/vkzlib/mpl/preprocessor/empty_tuple.hpp"
+      "include/vkzlib/mpl/preprocessor/expand_if.hpp"
+      "include/vkzlib/mpl/preprocessor/identity.hpp"
+      "include/vkzlib/mpl/preprocessor/is_empty.hpp"
+      "include/vkzlib/mpl/preprocessor/is_zero.hpp"
+      "include/vkzlib/mpl/preprocessor/not.hpp"
+      "include/vkzlib/mpl/preprocessor/or.hpp"
+      "include/vkzlib/mpl/preprocessor/pick_second_or.hpp"
+      "include/vkzlib/mpl/preprocessor/signature.hpp"
+      "include/vkzlib/mpl/preprocessor/unpack_tuple.hpp"
+      "include/vkzlib/mpl/preprocessor/va_opt.hpp"
+      # vkzlib/mpl/preprocessor/signature/
+      "include/vkzlib/mpl/preprocessor/signature/is_tag.hpp"
+      "include/vkzlib/mpl/preprocessor/signature/map_syntax_product.hpp"
+      "include/vkzlib/mpl/preprocessor/signature/tag.hpp"
+      "include/vkzlib/mpl/preprocessor/signature/tag_to_enum.hpp"
+      "include/vkzlib/mpl/preprocessor/signature/untag.hpp"
+      # vkzlib/mpl/tpl/
+      "include/vkzlib/mpl/tpl/fst.hpp"
+      # vkzlib/mpl/tpl/fst/
+      "include/vkzlib/mpl/tpl/fst/parse_template_spec.hpp"
+      "include/vkzlib/mpl/tpl/fst/SameTemplateAs.hpp"
+      "include/vkzlib/mpl/tpl/fst/WithTemplateParams.hpp"
+  )
+
+  set_target_properties(vkzlib PROPERTIES
+      INTERFACE_CXX_STANDARD 20
+      INTERFACE_CXX_STANDARD_REQUIRED ON
+      INTERFACE_CXX_EXTENSIONS OFF
+  )
+
+  if (MSVC)
     target_compile_options(vkzlib INTERFACE
         "/Zc:preprocessor"
     )
-endif()
+  endif ()
 
-target_include_directories(vkzlib INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
+  target_include_directories(vkzlib INTERFACE
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
 
-if (BUILD_TESTING)
-  add_subdirectory("test")
+  if (BUILD_TESTING)
+    add_subdirectory("test")
+  endif ()
+
 endif()
 
 include(GNUInstallDirs)
 
+if(NOT VKZLIB_USE_MODULES)
 install(
-    DIRECTORY "vkzlib/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/vkzlib"
+    DIRECTORY "include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     FILES_MATCHING
     PATTERN "*.h"
     PATTERN "*.hpp"
 )
+endif()
 
 install(
     TARGETS vkzlib

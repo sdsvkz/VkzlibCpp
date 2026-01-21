@@ -2,7 +2,7 @@
 
 #include <vkzlib/mpl/tpl/fst.hpp>
 
-#include <test/common.h>
+#include <common.h>
 
 namespace MplTplFstTest {
     using namespace ::vkz::mpl::tpl::fst;

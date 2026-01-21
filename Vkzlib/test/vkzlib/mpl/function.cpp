@@ -6,7 +6,7 @@
 #include <vkzlib/mpl/common.hpp>
 #include <vkzlib/mpl/function.hpp>
 
-#include <test/common.h>
+#include <common.h>
 
 namespace MplFunctionTest {
 	using ::vkz::mpl::Homogeneous;

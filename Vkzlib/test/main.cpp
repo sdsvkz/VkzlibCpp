@@ -6,7 +6,7 @@
 #include <vkzlib/mpl.hpp>
 #include <vkzlib/mpl/common/ce/findFirstFor.hpp>
 
-#include <test/common.h>
+#include <common.h>
 
 using namespace ::vkz;
 

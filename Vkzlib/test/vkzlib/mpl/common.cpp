@@ -2,7 +2,7 @@
 
 #include <vkzlib/mpl/common.hpp>
 
-#include <test/common.h>
+#include <common.h>
 
 namespace MplCommonTest {
 	using namespace ::vkz::mpl;
