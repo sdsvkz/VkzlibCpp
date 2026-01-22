@@ -3,6 +3,7 @@
 
 #include <type_traits>
 
+#include <vkzlib/mpl/common/Size.hpp>
 #include <vkzlib/mpl/common/pack/nth_of.hpp>
 
 namespace vkz::mpl::tpl::fst {
@@ -13,7 +14,7 @@ namespace vkz::mpl::tpl::fst {
         template<template<typename...> typename _TT, typename... Ts>
         struct _parse_template_spec<_TT<Ts...>> : std::true_type {
             static_assert(sizeof...(Ts) == 0);
-            static constexpr std::size_t argc = 0;
+            static constexpr Size argc = 0;
 
             template<typename... Us>
             using Template = _TT<Us...>;
@@ -21,12 +22,12 @@ namespace vkz::mpl::tpl::fst {
 
         template<template<typename...> typename _TT, typename T, typename... Ts>
         struct _parse_template_spec<_TT<T, Ts...>> : std::true_type {
-            static constexpr std::size_t argc = 1 + sizeof...(Ts);
+            static constexpr Size argc = 1 + sizeof...(Ts);
 
             template<typename U, typename... Us>
             using Template = _TT<U, Us...>;
 
-            template<std::size_t N>
+            template<Size N>
             using At = pack::nth_of_t<N, T, Ts...>;
         };
     }
@@ -41,7 +42,7 @@ namespace vkz::mpl::tpl::fst {
      * @brief How many template parameters the template `TT` CAN (but not necessarily) take
      */
     template<TemplateSpec P>
-    inline constexpr std::size_t tparam_count_v = _detail::_parse_template_spec<P>::argc;
+    inline constexpr Size tparam_count_v = _detail::_parse_template_spec<P>::argc;
 
     /**
      * @brief The template (Without proper template signature)
@@ -52,7 +53,7 @@ namespace vkz::mpl::tpl::fst {
     /**
      * @brief N-th type in pack
      */
-    template<std::size_t N, TemplateSpec P>
+    template<Size N, TemplateSpec P>
         requires (tparam_count_v<P> != 0)
     using nth_tparam_of_t = _detail::_parse_template_spec<P>::template At<N>;
 }

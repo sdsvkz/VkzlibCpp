@@ -1,8 +1,7 @@
 #ifndef VKZLIB_MPL_COMMON_PACK_PACK_HPP
 #define VKZLIB_MPL_COMMON_PACK_PACK_HPP
 
-#include <cstddef>
-
+#include <vkzlib/mpl/common/Size.hpp>
 #include <vkzlib/mpl/common/pack/nth_of.hpp>
 
 namespace vkz::mpl::pack {
@@ -11,7 +10,7 @@ namespace vkz::mpl::pack {
      */
     template<typename... Ts>
     struct Pack {
-        static constexpr std::size_t size = sizeof...(Ts);
+        static constexpr Size size = sizeof...(Ts);
     };
 
     /**
@@ -19,9 +18,9 @@ namespace vkz::mpl::pack {
      */
     template<typename First, typename... Rest>
     struct Pack<First, Rest...> {
-        static constexpr std::size_t size = 1 + sizeof...(Rest);
+        static constexpr Size size = 1 + sizeof...(Rest);
 
-        template<std::size_t N> requires (N < size)
+        template<Size N> requires (N < size)
         using At = nth_of_t<N, First, Rest...>;
     };
 }

@@ -4,9 +4,10 @@
 #include <type_traits>
 #include <concepts>
 
-#include <vkzlib/mpl/common/internal/NPOS.hpp>
+#include <vkzlib/mpl/common/Size.hpp>
+#include <vkzlib/mpl/common/NPOS.hpp>
+#include <vkzlib/mpl/common/DefaultPack.hpp>
 #include <vkzlib/mpl/common/ce/findFirstFor.hpp>
-#include <vkzlib/mpl/common/internal/DefaultPack.hpp>
 #include <vkzlib/mpl/function/parse/helper/common.hpp>
 #include <vkzlib/mpl/function/parse/property/concepts.hpp>
 #include <vkzlib/mpl/tpl/fst/parse_template_spec.hpp>
@@ -16,15 +17,15 @@ namespace vkz::mpl::function {
         /**
          * @brief Find the index of the first mismatched parameter
          *
-         * @return Index of mismatched parameter, or `std::numeric_limits<std::size_t>::max()` if not found
+         * @return Index of mismatched parameter, or `std::numeric_limits<Size>::max()` if not found
          */
         template<typename F, typename G,
             template <typename...> typename FPack,
             template <typename...> typename GPack>
-        consteval std::size_t _indexOfMismatchedParam() {
+        consteval Size _indexOfMismatchedParam() {
             constexpr auto TPARAM_COUNT = tpl::fst::tparam_count_v<parse::args_of_t<F, FPack>>;
-            return ce::findFirstFor<TPARAM_COUNT, []<std::size_t I>
-                (std::integral_constant<std::size_t, I>) -> bool {
+            return ce::findFirstFor<TPARAM_COUNT, []<Size I>
+                (std::integral_constant<Size, I>) -> bool {
                     return !std::same_as<
                         tpl::fst::nth_tparam_of_t<I, parse::args_of_t<F, FPack>>,
                         tpl::fst::nth_tparam_of_t<I, parse::args_of_t<G, GPack>>
@@ -39,13 +40,13 @@ namespace vkz::mpl::function {
          * @note If I don't do this, MSVC will instantiate `nth_tparam_of_t` with `_NPOS` and blows me up.
          *       I mean what the fuck are you thinking about to instantiate a unreached template?
          */
-        template<std::size_t POS, typename Args>
+        template<Size POS, typename Args>
         struct _Nth {
             using type = tpl::fst::nth_tparam_of_t<POS, Args>;
         };
 
         template<typename Args>
-        struct _Nth<mpl::internal::NPOS, Args> {
+        struct _Nth<NPOS, Args> {
             using type = std::void_t<>;
         };
 
@@ -59,9 +60,9 @@ namespace vkz::mpl::function {
         template<typename F, typename G,
             template <typename...> typename FPack,
             template <typename...> typename GPack,
-            std::size_t NOTE_SIZE,
+            Size NOTE_SIZE,
             const char NOTE[NOTE_SIZE],
-            std::size_t POS>
+            Size POS>
         struct _RetrieveMismatchedPair {
             using fst = _Nth<POS, parse::args_of_t<F, FPack>>::type;
             using snd = _Nth<POS, parse::args_of_t<G, GPack>>::type;
@@ -80,7 +81,7 @@ namespace vkz::mpl::function {
         /**
          * @brief Alias for `std::same_as` to hold additional note message
          */
-        template<std::size_t N, const char NOTE[N], typename T, typename U>
+        template<Size N, const char NOTE[N], typename T, typename U>
         concept _Match = std::same_as<T, U>;
 
         template<typename F, typename G,
@@ -90,7 +91,9 @@ namespace vkz::mpl::function {
                 F, G, FPack, GPack,
                 sizeof(_ARGS_DIFF_INDEX_NOTE), _ARGS_DIFF_INDEX_NOTE,
                 _detail::_indexOfMismatchedParam<F, G, FPack, GPack>()>>
-        concept _SameArgs = _Match<sizeof(_ARGS_DIFF_TYPE_NOTE), _ARGS_DIFF_TYPE_NOTE, typename MismatchedPair::fst, typename MismatchedPair::snd>;
+        concept _SameArgs = _Match<
+            sizeof(_ARGS_DIFF_TYPE_NOTE), _ARGS_DIFF_TYPE_NOTE,
+            typename MismatchedPair::fst, typename MismatchedPair::snd>;
     }
 
     /**
@@ -100,8 +103,8 @@ namespace vkz::mpl::function {
      * @tparam GPack Same as `FPack`, but for `G`
      */
     template<typename F, typename G,
-        template <typename...> typename FPack = internal::DefaultPack,
-        template <typename...> typename GPack = internal::DefaultPack>
+        template <typename...> typename FPack = DefaultPack,
+        template <typename...> typename GPack = DefaultPack>
     concept SameArgsAs =
         parse::Parsable<F> &&
         parse::Parsable<G> &&

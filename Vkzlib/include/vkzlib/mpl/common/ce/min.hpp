@@ -1,7 +1,6 @@
-#ifndef VKZLIB_INTERNAL_MIN_HPP
-#define VKZLIB_INTERNAL_MIN_HPP
+#ifndef VKZLIB_COMMON_CE_MIN_HPP
+#define VKZLIB_COMMON_CE_MIN_HPP
 
-#include <cstddef>
 #include <concepts>
 
 namespace vkz::mpl::ce {
@@ -17,4 +16,4 @@ namespace vkz::mpl::ce {
     }
 }
 
-#endif // VKZLIB_INTERNAL_MIN_HPP
+#endif // VKZLIB_COMMON_CE_MIN_HPP

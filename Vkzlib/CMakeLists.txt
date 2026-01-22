@@ -42,15 +42,15 @@ set(VKZLIB_HEADERS
     "include/vkzlib/mpl/common/Class.hpp"
     "include/vkzlib/mpl/common/conditionalCall.hpp"
     "include/vkzlib/mpl/common/CString.hpp"
+    "include/vkzlib/mpl/common/DefaultPack.hpp"
     "include/vkzlib/mpl/common/dup_const.hpp"
     "include/vkzlib/mpl/common/dup_cvref.hpp"
     "include/vkzlib/mpl/common/dup_reference.hpp"
     "include/vkzlib/mpl/common/dup_volatile.hpp"
     "include/vkzlib/mpl/common/HasCommonType.hpp"
     "include/vkzlib/mpl/common/Homogeneous.hpp"
-    # vkzlib/mpl/common/internal/
-    "include/vkzlib/mpl/common/internal/DefaultPack.hpp"
-    "include/vkzlib/mpl/common/internal/NPOS.hpp"
+    "include/vkzlib/mpl/common/NPOS.hpp"
+    "include/vkzlib/mpl/common/Size.hpp"
     # vkzlib/mpl/common/ce/
     "include/vkzlib/mpl/common/ce/findFirstFor.hpp"
     "include/vkzlib/mpl/common/ce/foldl.hpp"

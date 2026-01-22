@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <concepts>
 
-#include <vkzlib/mpl/common/internal/DefaultPack.hpp>
+#include <vkzlib/mpl/common/DefaultPack.hpp>
 #include <vkzlib/mpl/function/parse/parse.hpp>
 
 namespace vkz::mpl::function::parse {
@@ -38,7 +38,7 @@ namespace vkz::mpl::function::parse {
     template<Parsable T>
     using result_of_t = parse<T>::_VKZLIB_R_T;
 
-    template<Parsable T, template <typename...> typename Pack = internal::DefaultPack>
+    template<Parsable T, template <typename...> typename Pack = DefaultPack>
     using args_of_t = parse<T>::template _VKZLIB_ARGS_PACK_T<Pack>;
 
     template<Parsable T>
