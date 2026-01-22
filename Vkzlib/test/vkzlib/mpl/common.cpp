@@ -2,7 +2,7 @@
 
 #include <vkzlib/mpl/common.hpp>
 
-#include <common.h>
+#include <common.hpp>
 
 namespace MplCommonTest {
 	using namespace ::vkz::mpl;
@@ -184,8 +184,7 @@ namespace MplCommonTest {
 	}
 }
 
-namespace MplCommonCeTest {
-	using namespace ::vkz::mpl;
+namespace MplCommonTest::ce {
 	using namespace ::vkz::mpl::ce;
 
 	TEST(MplCommonCeTest, TestFindFirstFor) {
@@ -216,5 +215,63 @@ namespace MplCommonCeTest {
 			}
 		>(INITIAL);
 		EXPECT_EQ(V, 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9);
+	}
+}
+
+namespace MplCommonTest::pack {
+	using namespace vkz::mpl::pack;
+
+	template<typename Expect, typename N, typename T, typename... Ts>
+	constexpr bool nth_is = std::same_as<Expect, nth_of_t<N::value, T, Ts...>>;
+
+	TEST(MplCommonPackTest, TestIsEmptyPack) {
+		EXPECT_TEMPLATE(TRUE, is_empty_pack_v);
+		EXPECT_TEMPLATE(FALSE, is_empty_pack_v, void);
+	}
+
+	TEST(MplCommonPackTest, TestNthOf) {
+#define EXPECT_NTH_IS(...) EXPECT_TEMPLATE(TRUE, nth_is, __VA_ARGS__)
+		EXPECT_NTH_IS(int, SizeConstant<0>, int);
+		EXPECT_NTH_IS(float, SizeConstant<1>, int, float, char, void *);
+		EXPECT_NTH_IS(void *, SizeConstant<3>, int, float, char, void *);
+#undef EXPECT_NTH_IS
+	}
+
+	TEST(MplCommonPackTest, TestPack) {
+		using EmptyPack = Pack<>;
+		EXPECT_EQ(EmptyPack::size, 0);
+
+		using PackA = Pack<void>;
+		EXPECT_EQ(PackA::size, 1);
+		EXPECT_TEMPLATE(TRUE, std::same_as, PackA::At<0>, void);
+
+		using PackB = Pack<int, float, char>;
+		EXPECT_EQ(PackB::size, 3);
+		EXPECT_TEMPLATE(TRUE, std::same_as, PackB::At<0>, int);
+		EXPECT_TEMPLATE(TRUE, std::same_as, PackB::At<1>, float);
+		EXPECT_TEMPLATE(TRUE, std::same_as, PackB::At<2>, char);
+	}
+
+	template<typename Expect, typename N, typename... Ts>
+	inline constexpr bool unsafe_nth_of_is = std::same_as<Expect, unsafe::nth_of_t<N::value, Ts...>>;
+
+	TEST(MplCommonPackTest, TestUnsafeNthOf) {
+#define EXPECT_UNSAFE_NTH_IS(...) EXPECT_TEMPLATE(TRUE, unsafe_nth_of_is, __VA_ARGS__)
+		EXPECT_UNSAFE_NTH_IS(int, SizeConstant<0>, int);
+		EXPECT_UNSAFE_NTH_IS(float, SizeConstant<1>, int, float, char, void *);
+		EXPECT_UNSAFE_NTH_IS(void *, SizeConstant<3>, int, float, char, void *);
+#undef EXPECT_UNSAFE_NTH_IS
+	}
+
+	TEST(MplCommonPackTest, TestUncons) {
+		using T1 = decltype(unsafe::uncons<
+			[]<typename T, typename... Ts>(std::type_identity<T>, std::type_identity<Ts>...) {
+				return Pack<Ts...>{};
+			}, void, int, float, char
+		>());
+		std::cout << typeid(T1).name() << std::endl;
+		constexpr bool e = std::same_as<T1, Pack<int, float, char>>;
+
+		EXPECT_TRUE(e);
 	}
 }

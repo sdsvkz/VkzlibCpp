@@ -7,10 +7,10 @@
 namespace vkz::mpl::ce {
     namespace _detail {
         template<auto F, typename R, Size... Is>
-        consteval R _unroll_impl(R initial, std::index_sequence<Is...>) {
-            return foldl<[]<Size I>(R acc, std::integral_constant<Size, I>) -> R {
-                return F(acc, std::integral_constant<Size, I>());
-            }>(initial, std::integral_constant<Size, Is>()...);
+        consteval R _unroll_impl(R initial, SizeSequence<Is...>) {
+            return foldl<[]<Size I>(R acc, SizeConstant<I>) -> R {
+                return F(acc, SizeConstant<I>());
+            }>(initial, SizeConstant<Is>()...);
         }
     }
 

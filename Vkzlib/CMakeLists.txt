@@ -33,6 +33,7 @@ set(VKZLIB_HEADERS
     # vkzlib/
     "include/vkzlib/mpl.hpp"
     # vkzlib/mpl/
+    "include/vkzlib/mpl/ce.hpp"
     "include/vkzlib/mpl/common.hpp"
     "include/vkzlib/mpl/function.hpp"
     "include/vkzlib/mpl/pack.hpp"
@@ -57,7 +58,12 @@ set(VKZLIB_HEADERS
     "include/vkzlib/mpl/common/ce/min.hpp"
     "include/vkzlib/mpl/common/ce/unroll.hpp"
     # vkzlib/mpl/common/pack/
+    "include/vkzlib/mpl/common/pack/is_empty_pack.hpp"
     "include/vkzlib/mpl/common/pack/nth_of.hpp"
+    "include/vkzlib/mpl/common/pack/Pack.hpp"
+    # vkzlib/mpl/common/pack/unsafe/
+    "include/vkzlib/mpl/common/pack/unsafe/nth_of.hpp"
+    "include/vkzlib/mpl/common/pack/unsafe/uncons.hpp"
     # vkzlib/mpl/function/
     "include/vkzlib/mpl/function/Fn.hpp"
     "include/vkzlib/mpl/function/FnRef.hpp"
@@ -83,7 +89,6 @@ set(VKZLIB_HEADERS
     # vkzlib/mpl/function/property/
     "include/vkzlib/mpl/function/property/enums.hpp"
     # vkzlib/mpl/pack/
-    "include/vkzlib/mpl/common/pack/Pack.hpp"
     # vkzlib/mpl/tpl/
     "include/vkzlib/mpl/tpl/fst.hpp"
     # vkzlib/mpl/tpl/fst/

@@ -24,14 +24,18 @@ namespace vkz::mpl::function {
             template <typename...> typename GPack>
         consteval Size _indexOfMismatchedParam() {
             constexpr auto TPARAM_COUNT = tpl::fst::tparam_count_v<parse::args_of_t<F, FPack>>;
-            return ce::findFirstFor<TPARAM_COUNT, []<Size I>
-                (std::integral_constant<Size, I>) -> bool {
-                    return !std::same_as<
-                        tpl::fst::nth_tparam_of_t<I, parse::args_of_t<F, FPack>>,
-                        tpl::fst::nth_tparam_of_t<I, parse::args_of_t<G, GPack>>
-                    >;
-                }
-            >();
+            if constexpr (TPARAM_COUNT == 0) {
+                return NPOS;
+            } else {
+                return ce::findFirstFor<TPARAM_COUNT, []<Size I>
+                    (SizeConstant<I>) -> bool {
+                        return !std::same_as<
+                            tpl::fst::nth_tparam_of_t<I, parse::args_of_t<F, FPack>>,
+                            tpl::fst::nth_tparam_of_t<I, parse::args_of_t<G, GPack>>
+                        >;
+                    }
+                >();
+            }
         }
 
         /**

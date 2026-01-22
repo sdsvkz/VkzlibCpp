@@ -18,7 +18,7 @@ void _printOne(const int index) {
 }
 
 template<vkz::mpl::Size N>
-void _printOne(const int index, std::integral_constant<vkz::mpl::Size, N>) {
+void _printOne(const int index, vkz::mpl::SizeSequence<N>) {
 	std::printf("%d: %zu\n", index, N);
 }
 
@@ -34,9 +34,8 @@ void _printDispatch(const int index) {
 
 template<typename... Ts>
 void printAllTypes() {
-	return []<std::size_t... Is>(std::index_sequence<Is...>) {
-		(_printDispatch<Ts>(Is), ...);
-	}(std::make_index_sequence<sizeof...(Ts)>());
+	int i = 0;
+	(_printDispatch<Ts>(i++), ...);
 }
 
 // `TRUE` or `FALSE`

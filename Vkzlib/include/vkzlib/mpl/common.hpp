@@ -25,7 +25,11 @@ namespace vkz::mpl {}
 #include <vkzlib/mpl/common/ce/min.hpp>
 #include <vkzlib/mpl/common/ce/unroll.hpp>
 
+#include <vkzlib/mpl/common/pack/is_empty_pack.hpp>
 #include <vkzlib/mpl/common/pack/nth_of.hpp>
 #include <vkzlib/mpl/common/pack/Pack.hpp>
+
+#include <vkzlib/mpl/common/pack/unsafe/nth_of.hpp>
+#include <vkzlib/mpl/common/pack/unsafe/uncons.hpp>
 
 #endif // VKZLIB_MPL_COMMON_HPP
