@@ -5,35 +5,38 @@
 #include <typeinfo>
 #include <type_traits>
 
+#include <vkzlib/mpl/common/Size.hpp>
+
 template<typename T>
 void printType(const char *name = "T") {
 	std::printf("%s = %s\n", name, typeid(T).name());
 }
 
 template<typename T>
-void _printOne(int index) {
+void _printOne(const int index) {
 	std::printf("%d: %s\n", index, typeid(T).name());
 }
 
-template<std::size_t N>
-void _printOne(int index, std::integral_constant<std::size_t, N>) {
+template<vkz::mpl::Size N>
+void _printOne(const int index, std::integral_constant<vkz::mpl::Size, N>) {
 	std::printf("%d: %zu\n", index, N);
 }
 
 template<typename T>
-void _printDispatch(int index) {
+void _printDispatch(const int index) {
 	_printOne<T>(index);
 }
 
 template<typename T, T V>
-void _printDispatch(int index) {
+void _printDispatch(const int index) {
 	_printOne(index, std::integral_constant<T, V>{});
 }
 
 template<typename... Ts>
 void printAllTypes() {
-	int i = 0;
-	(_printDispatch<Ts>(i++), ...);
+	return []<std::size_t... Is>(std::index_sequence<Is...>) {
+		(_printDispatch<Ts>(Is), ...);
+	}(std::make_index_sequence<sizeof...(Ts)>());
 }
 
 // `TRUE` or `FALSE`

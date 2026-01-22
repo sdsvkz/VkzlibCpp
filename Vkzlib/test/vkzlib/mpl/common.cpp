@@ -185,12 +185,13 @@ namespace MplCommonTest {
 }
 
 namespace MplCommonCeTest {
+	using namespace ::vkz::mpl;
 	using namespace ::vkz::mpl::ce;
 
 	TEST(MplCommonCeTest, TestFindFirstFor) {
-		constexpr auto V = findFirstFor<10, []<std::size_t I>
-			(std::integral_constant<std::size_t, I>) -> bool {
-				return std::greater<std::size_t>()(I * 2, 5);
+		constexpr auto V = findFirstFor<10, []<Size I>
+			(std::integral_constant<Size, I>) -> bool {
+				return std::greater<Size>()(I * 2, 5);
 			}
 		>();
 		EXPECT_EQ(V, 3);
@@ -208,9 +209,9 @@ namespace MplCommonCeTest {
 	}
 
 	TEST(MplCommonCeTest, TestUnroll) {
-		constexpr std::size_t INITIAL = 0;
-		constexpr auto V = unroll<10, []<std::size_t I>
-			(const std::size_t acc, std::integral_constant<std::size_t, I>) {
+		constexpr Size INITIAL = 0;
+		constexpr auto V = unroll<10, []<Size I>
+			(const Size acc, std::integral_constant<Size, I>) {
 				return acc + I;
 			}
 		>(INITIAL);

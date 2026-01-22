@@ -8,6 +8,7 @@
 #include <common.h>
 
 namespace MplPackTest {
+    using namespace ::vkz::mpl;
     using namespace ::vkz::mpl::pack;
 
     template<typename Expect, typename N, typename T, typename... Ts>
@@ -15,9 +16,9 @@ namespace MplPackTest {
 
     TEST(PackTest, TestNthOf) {
 #define EXPECT_NTH_IS(...) EXPECT_TEMPLATE(TRUE, nth_is, __VA_ARGS__)
-        EXPECT_NTH_IS(int, std::integral_constant<std::size_t, 0>, int);
-        EXPECT_NTH_IS(float, std::integral_constant<std::size_t, 1>, int, float, char, void *);
-        EXPECT_NTH_IS(void *, std::integral_constant<std::size_t, 3>, int, float, char, void *);
+        EXPECT_NTH_IS(int, std::integral_constant<Size, 0>, int);
+        EXPECT_NTH_IS(float, std::integral_constant<Size, 1>, int, float, char, void *);
+        EXPECT_NTH_IS(void *, std::integral_constant<Size, 3>, int, float, char, void *);
 #undef EXPECT_NTH_IS
     }
 
