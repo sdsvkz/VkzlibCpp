@@ -11,16 +11,22 @@
 
 namespace vkz::mpl::tpl::fst {
     namespace _detail {
-        template<TemplateSpec P>
+        /**
+         * @brief Find the index of first mismatched template parameter pair.
+         *
+         * @return The index, or `NPOS` if all matched
+         */
+        template<TemplateSpec P, typename... Ts>
         consteval Size _indexOfMismatched() {
-            return NPOS;
-        }
-
-        template<TemplateSpec P, typename T, typename... Ts>
-        consteval Size _indexOfMismatched() {
-            return ce::findFirstFor<1 + sizeof...(Ts), []<Size I>(SizeConstant<I>) -> bool {
-                return not std::same_as<nth_tparam_of_t<I, P>, pack::unsafe::nth_of_t<I, T, Ts...>>;
-            }>();
+            if constexpr (sizeof...(Ts) == 0) {
+                return NPOS;
+            } else {
+                return ce::findFirstFor<sizeof...(Ts), []<Size I>(SizeConstant<I>) -> bool {
+                    return not std::same_as<
+                        nth_tparam_of_t<I, P>,
+                        pack::unsafe::nth_of_t<I, Ts...>>;
+                }>();
+            }
         }
 
         /**
@@ -29,29 +35,39 @@ namespace vkz::mpl::tpl::fst {
         inline constexpr char _ARGS_DIFF_INDEX_NOTE[] = "!!!NOTE!!!: Position of mismatched parameter (starts from 0): ";
 
         /**
-         * @brief Message to highlight mismatched parameter type
+         * @brief Message to highlight mismatched parameter
          */
         inline constexpr char _ARGS_DIFF_TYPE_NOTE[] = "!!!NOTE!!!: When matching: ";
 
         /**
-         * @brief Alias for `std::same_as` to hold additional note message
+         * @brief Constraint alias to hold additional note
          */
-        template<Size N, const char NOTE[N], typename T, typename U>
+        template<Size NOTE_SIZE, const char NOTE[NOTE_SIZE], typename T, typename U>
         concept _Reason = std::same_as<T, U>;
 
-        template<Size POS, typename P, typename... Ts>
+        /**
+         * @brief Retrigger failed constraint
+         */
+        template<Size NOTE_SIZE, const char NOTE[NOTE_SIZE], Size POS, typename P, typename... Ts>
         concept _Retrigger = _Reason<
             sizeof(_ARGS_DIFF_TYPE_NOTE), _ARGS_DIFF_TYPE_NOTE,
             nth_tparam_of_t<POS, P>, pack::unsafe::nth_of_t<POS, Ts...>>;
 
+        template<Size POS, typename P, typename... Ts>
+        concept _SameTemplateParams =
+            POS == NPOS ||
+            _Retrigger<
+                sizeof(_ARGS_DIFF_INDEX_NOTE), _ARGS_DIFF_INDEX_NOTE,
+                POS, P, Ts...>;
     }
 
+    /**
+     * @brief Template specialization `P` with template parameters `Ts`
+     */
     template<typename P, typename... Ts>
     concept WithTemplateParams = TemplateSpec<P> &&
-        tparam_count_v<P> == sizeof...(Ts) && (
-            _detail::_indexOfMismatched<P, Ts...>() == NPOS ||
-            _detail::_Retrigger<_detail::_indexOfMismatched<P, Ts...>(), P, Ts...>
-        );
+        tparam_count_v<P> == sizeof...(Ts) &&
+        _detail::_SameTemplateParams<_detail::_indexOfMismatched<P, Ts...>(), P, Ts...>;
 }
 
 #endif // VKZLIB_MPL_TPL_FST_WITHTEMPLATEPARAMS_HPP

@@ -49,5 +49,6 @@ namespace MplTplFstTest {
         EXPECT_WITH_TEMPLATE_PARAMS(FALSE, TupleA, int, int);
         EXPECT_WITH_TEMPLATE_PARAMS(FALSE, VectorA, int);
 #undef EXPECT_WITH_TEMPLATE_PARAMS
+        // static_assert(WithTemplateParams<TupleA, int, char>);
     }
 }

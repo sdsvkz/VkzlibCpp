@@ -15,9 +15,9 @@
 namespace vkz::mpl::function {
     namespace _detail {
         /**
-         * @brief Find the index of the first mismatched parameter
+         * @brief Find the index of the first mismatched parameter pair
          *
-         * @return Index of mismatched parameter, or `std::numeric_limits<Size>::max()` if not found
+         * @return The index, or `NPOS` if all matched
          */
         template<typename F, typename G,
             template <typename...> typename FPack,
@@ -29,48 +29,13 @@ namespace vkz::mpl::function {
             } else {
                 return ce::findFirstFor<TPARAM_COUNT, []<Size I>
                     (SizeConstant<I>) -> bool {
-                        return !std::same_as<
+                        return not std::same_as<
                             tpl::fst::nth_tparam_of_t<I, parse::args_of_t<F, FPack>>,
-                            tpl::fst::nth_tparam_of_t<I, parse::args_of_t<G, GPack>>
-                        >;
+                            tpl::fst::nth_tparam_of_t<I, parse::args_of_t<G, GPack>>>;
                     }
                 >();
             }
         }
-
-        /**
-         * @brief Wrapper of `tpl::fst::nth_tparam_of_t`. SHUT THE FUCK UP MSVC
-         *
-         * @note If I don't do this, MSVC will instantiate `nth_tparam_of_t` with `_NPOS` and blows me up.
-         *       I mean what the fuck are you thinking about to instantiate a unreached template?
-         */
-        template<Size POS, typename Args>
-        struct _Nth {
-            using type = tpl::fst::nth_tparam_of_t<POS, Args>;
-        };
-
-        template<typename Args>
-        struct _Nth<NPOS, Args> {
-            using type = std::void_t<>;
-        };
-
-        /**
-         * @brief Get the first pair of mismatched parameter.
-         *
-         * Forward them to `std::same_as` to trigger constraint message
-         *
-         * If all matched, gives `fst` and `snd` so that `std::same_as<fst, snd>` is always true
-         */
-        template<typename F, typename G,
-            template <typename...> typename FPack,
-            template <typename...> typename GPack,
-            Size NOTE_SIZE,
-            const char NOTE[NOTE_SIZE],
-            Size POS>
-        struct _RetrieveMismatchedPair {
-            using fst = _Nth<POS, parse::args_of_t<F, FPack>>::type;
-            using snd = _Nth<POS, parse::args_of_t<G, GPack>>::type;
-        };
 
         /**
          * @brief Message to highlight index of mismatched parameter
@@ -83,21 +48,31 @@ namespace vkz::mpl::function {
         inline constexpr char _ARGS_DIFF_TYPE_NOTE[] = "!!!NOTE!!!: When matching: ";
 
         /**
-         * @brief Alias for `std::same_as` to hold additional note message
+         * @brief Constraint alias to hold additional note
          */
-        template<Size N, const char NOTE[N], typename T, typename U>
-        concept _Match = std::same_as<T, U>;
+        template<Size NOTE_SIZE, const char NOTE[NOTE_SIZE], typename T, typename U>
+        concept _Reason = std::same_as<T, U>;
 
-        template<typename F, typename G,
+        /**
+         * @brief Retrigger failed constraint
+         */
+        template<Size NOTE_SIZE, const char NOTE[NOTE_SIZE], Size POS,
+            typename F, typename G,
             template <typename...> typename FPack,
-            template <typename...> typename GPack,
-            typename MismatchedPair = _RetrieveMismatchedPair<
-                F, G, FPack, GPack,
-                sizeof(_ARGS_DIFF_INDEX_NOTE), _ARGS_DIFF_INDEX_NOTE,
-                _detail::_indexOfMismatchedParam<F, G, FPack, GPack>()>>
-        concept _SameArgs = _Match<
+            template <typename...> typename GPack>
+        concept _Retrigger = _Reason<
             sizeof(_ARGS_DIFF_TYPE_NOTE), _ARGS_DIFF_TYPE_NOTE,
-            typename MismatchedPair::fst, typename MismatchedPair::snd>;
+            tpl::fst::nth_tparam_of_t<POS, parse::args_of_t<F, FPack>>,
+            tpl::fst::nth_tparam_of_t<POS, parse::args_of_t<G, GPack>>>;
+
+        template<Size POS, typename F, typename G,
+            template <typename...> typename FPack,
+            template <typename...> typename GPack>
+        concept _SameArgs =
+            POS == NPOS ||
+            _Retrigger<
+                sizeof(_ARGS_DIFF_INDEX_NOTE), _ARGS_DIFF_INDEX_NOTE,
+                POS, F, G, FPack, GPack>;
     }
 
     /**
@@ -114,7 +89,7 @@ namespace vkz::mpl::function {
         parse::Parsable<G> &&
         parse::property::Variadic<F> == parse::property::Variadic<G> &&
         tpl::fst::tparam_count_v<parse::args_of_t<F, FPack>> == tpl::fst::tparam_count_v<parse::args_of_t<G, GPack>> &&
-        _detail::_SameArgs<F, G, FPack, GPack>;
+        _detail::_SameArgs<_detail::_indexOfMismatchedParam<F, G, FPack, GPack>(), F, G, FPack, GPack>;
 }
 
 #endif // VKZLIB_MPL_FUNCTION_SAMEARGSAS_HPP

@@ -36,21 +36,21 @@ namespace vkz::mpl::tpl::fst {
     }
 
     /**
-     * @brief A fully instantiated template
+     * @brief Template specialization
      */
     template<typename T>
     concept TemplateSpec =
         _detail::_parse_template_spec<T>::value;
 
     /**
-     * @brief How many template parameters the template `TT` CAN (but not necessarily) take
+     * @brief How many template parameters the template of `P` CAN (but not necessarily) take
      */
     template<TemplateSpec P>
     inline constexpr Size tparam_count_v =
         _detail::_parse_template_spec<P>::argc;
 
     /**
-     * @brief The template (Without proper template signature)
+     * @brief Bind `P` to get the template of `P` (Without proper template signature)
      */
     template<TemplateSpec P, typename... Ts>
     using template_of_t = _detail::_parse_template_spec<P>::template Pack<Ts...>;

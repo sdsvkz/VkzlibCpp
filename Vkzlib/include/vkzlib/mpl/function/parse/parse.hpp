@@ -71,7 +71,7 @@ namespace vkz::mpl::function::parse {
 	static constexpr auto _VKZLIB_NOEX =											\
 		property::ExceptionQualifier::VKZLIB_PP_SIGNATURE_TAG_TO_ENUM(NOEX_TAG);
 
-	/* Generate specifications:
+	/* Generate specializations:
 	 *	 1. Create a macro that will expand into the target type.
 	 *		Use `VKZLIB_PP_SIGNATURE_UNTAG` to expand a tag into qualifiers.
 	 *		Note that `VAR_TAG` expands to `, ...`
@@ -86,8 +86,8 @@ namespace vkz::mpl::function::parse {
 
 	// ============ Function Signature ============
 
-	/* Generate specifications:
-	 *	 2. Create a macro that will expand into a specification.
+	/* Generate specializations:
+	 *	 2. Create a macro that will expand into a specializations.
 	 *		You can combine `VKZLIB_PP_CONDITIONAL` and `VKZLIB_PP_SIGNATURE_IS_*` macros
 	 *		to branch contents based on tags
 	 */
@@ -113,7 +113,7 @@ namespace vkz::mpl::function::parse {
 		)																\
 	};
 
-	/* Generate specifications:
+	/* Generate specializations:
 	 *	 3. This will apply all combinations of tags to your higher-order macro
 	 */
 	VKZLIB_PP_SIGNATURE_MAP_SYNTAX_PRODUCT(VKZLIB_DEFINE_PARSE_FUNCTION_SIGNATURE)
@@ -151,8 +151,8 @@ namespace vkz::mpl::function::parse {
 	};																		\
 )
 
-	/* Generate specifications:
-	 *	 This is what you can do if you don't want to generate some specifications.
+	/* Generate specializations:
+	 *	 This is what you can do if you don't want to generate some specializations.
 	 */
 #define VKZLIB_DEFINE_PARSE_FUNCTION_POINTER(				\
 	VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG						\
@@ -277,7 +277,7 @@ namespace vkz::mpl::function::parse {
 	// ============ Forward qualified types ============
 
 	template<typename T>
-		requires (!std::same_as<std::remove_cvref_t<T>, T>)
+		requires (not std::same_as<std::remove_cvref_t<T>, T>)
 	struct parse<T> : parse<std::remove_cvref_t<T>> {
 		using _VKZLIB_N_T = std::enable_if_t<
 			parse<std::remove_cvref_t<T>>::value,
