@@ -32,4 +32,7 @@ namespace vkz::mpl {}
 #include <vkzlib/mpl/common/pack/unsafe/nth_of.hpp>
 #include <vkzlib/mpl/common/pack/unsafe/uncons.hpp>
 
+#include <vkzlib/mpl/common/tpl/fst/parse_template_spec.hpp>
+#include <vkzlib/mpl/common/tpl/fst/WithTemplateParams.hpp>
+
 #endif // VKZLIB_MPL_COMMON_HPP

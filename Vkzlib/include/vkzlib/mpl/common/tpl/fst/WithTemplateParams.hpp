@@ -7,7 +7,7 @@
 #include <vkzlib/mpl/common/NPOS.hpp>
 #include <vkzlib/mpl/common/ce/findFirstFor.hpp>
 #include <vkzlib/mpl/common/pack/unsafe/nth_of.hpp>
-#include <vkzlib/mpl/tpl/fst/parse_template_spec.hpp>
+#include <vkzlib/mpl/common/tpl/fst/parse_template_spec.hpp>
 
 namespace vkz::mpl::tpl::fst {
     namespace _detail {

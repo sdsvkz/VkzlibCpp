@@ -8,9 +8,9 @@
 #include <vkzlib/mpl/common/NPOS.hpp>
 #include <vkzlib/mpl/common/DefaultPack.hpp>
 #include <vkzlib/mpl/common/ce/findFirstFor.hpp>
+#include <vkzlib/mpl/common/tpl/fst/parse_template_spec.hpp>
 #include <vkzlib/mpl/function/parse/helper/common.hpp>
 #include <vkzlib/mpl/function/parse/property/concepts.hpp>
-#include <vkzlib/mpl/tpl/fst/parse_template_spec.hpp>
 
 namespace vkz::mpl::function {
     namespace _detail {
