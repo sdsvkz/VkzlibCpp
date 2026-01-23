@@ -2,27 +2,82 @@
 #define VKZLIB_MPL_FUNCTION_FNREF_HPP
 
 #include <vkzlib/mpl/common/DefaultPack.hpp>
-#include <vkzlib/mpl/common/tpl/fst/WithTemplateParams.hpp>
+#include <vkzlib/mpl/function/assemble_signature.hpp>
 #include <vkzlib/mpl/function/parse/helper/common.hpp>
 #include <vkzlib/mpl/function/Fn.hpp>
 
 namespace vkz::mpl::function {
-    template<parse::Parsable S, typename... Args>
-    class FnRef {
-        template<template<typename...> typename Pack = DefaultPack>
-        using ArgsPack = parse::args_of_t<S, Pack>;
-        using R = parse::result_of_t<S>;
+    template<bool CONST, bool NOEX, typename R, typename... Args>
+    class _FnRef_impl {
+    protected:
+        using FType = std::conditional_t<CONST, const void *, void *>;
+        using CallType = R (*)(FType, Args...) noexcept(NOEX);
+    public:
+        constexpr _FnRef_impl() = delete;
+        constexpr ~_FnRef_impl() noexcept = default;
 
-        void *f {};
-        R (*call)(void *, Args...) {};
+        template<Fn<R(Args...)> F>
+        constexpr explicit _FnRef_impl(F &&f) = delete;
 
-        // template<typename F, typename... FArgs, template<typename...> typename Pack = DefaultPack>
-        //     requires tpl::fst Fn<F, R(Args...)>
+        constexpr _FnRef_impl(const _FnRef_impl &other) = delete;
+        constexpr _FnRef_impl &operator=(const _FnRef_impl &other) = delete;
+
+        template<Fn<R(Args...)> F>
+        constexpr explicit _FnRef_impl(F &f) noexcept
+            : f(reinterpret_cast<FType>(&f)), call([](FType _f, Args... args) -> R {
+                return (*reinterpret_cast<std::conditional_t<CONST, const F *, F *>>(_f))(args...);
+            }) {}
+
+        constexpr _FnRef_impl(_FnRef_impl &&other) noexcept
+            : f(other.f), call(other.call) {}
+        constexpr _FnRef_impl &operator=(_FnRef_impl &&other) noexcept {
+            f = other.f;
+            call = other.call;
+            return *this;
+        }
+
+        constexpr R operator()(Args... args) const noexcept(NOEX) {
+            return call(f, args...);
+        }
 
 
-
-
+    protected:
+        FType f;
+        CallType call;
     };
+
+    template <typename Signature, bool CONST>
+    class FnRef;
+
+    template<typename R, typename... Args, bool CONST>
+    class FnRef<R(Args...), CONST> : public _FnRef_impl<CONST, false, R, Args...> {
+        using BaseClass = _FnRef_impl<CONST, false, R, Args...>;
+    public:
+        template<Fn<R(Args...)> F>
+        constexpr explicit FnRef(F &f) noexcept
+            : BaseClass(f) {}
+    };
+
+    template<typename R, typename... Args, bool CONST>
+    class FnRef<R(Args...) noexcept, CONST> : public _FnRef_impl<CONST, true, R, Args...> {
+        using BaseClass = _FnRef_impl<CONST, true, R, Args...>;
+    public:
+        template<Fn<R(Args...)> F>
+        constexpr explicit FnRef(F &f) noexcept
+            : BaseClass(f) {}
+    };
+
+    /**
+     * @brief
+     * @tparam F
+     * @tparam Pack
+     * @param f
+     * @return
+     */
+    template<parse::Parsable F, template<typename...> typename Pack = DefaultPack>
+    explicit FnRef(F &f) -> FnRef<
+        assemble_signature_t<parse::result_of_t<F>, parse::args_of_t<F, Pack>>,
+        std::is_const_v<std::remove_reference_t<F>>>;
 }
 
 #endif // VKZLIB_MPL_FUNCTION_FNREF_HPP

@@ -58,7 +58,7 @@ namespace vkz::mpl::function::parse {
      */
     template<typename T>
     concept Normalizable = Parsable<T> &&
-        not std::same_as<typename parse<T>::_VKZLIB_N_T, void>;
+        not std::same_as<std::remove_cvref_t<typename parse<T>::_VKZLIB_N_T>, void>;
 
     /**
      * @brief Remove CV, Ref, noexcept from signature

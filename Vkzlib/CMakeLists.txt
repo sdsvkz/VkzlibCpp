@@ -67,6 +67,7 @@ set(VKZLIB_HEADERS
     "include/vkzlib/mpl/common/tpl/fst/parse_template_spec.hpp"
     "include/vkzlib/mpl/common/tpl/fst/WithTemplateParams.hpp"
 
+    "include/vkzlib/mpl/function/assemble_signature.hpp"
     "include/vkzlib/mpl/function/Fn.hpp"
     "include/vkzlib/mpl/function/FnRef.hpp"
     "include/vkzlib/mpl/function/MonomorphicFunctor.hpp"

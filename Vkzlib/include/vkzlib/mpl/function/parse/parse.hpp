@@ -19,7 +19,7 @@
 namespace vkz::mpl::function::parse {
 
     template<typename T>
-	struct parse : std::false_type {};
+	struct _parse_impl : std::false_type {};
 
 	// ============ Preprocessors ============
 
@@ -96,7 +96,7 @@ namespace vkz::mpl::function::parse {
 )																		\
 	template<															\
 		typename _VKZLIB_T_R, typename ..._VKZLIB_T_ARGS				\
-	> struct parse<VKZLIB_FUNCTION_SIGNATURE_TYPE(						\
+	> struct _parse_impl<VKZLIB_FUNCTION_SIGNATURE_TYPE(				\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG								\
 	)> : std::true_type													\
 	{																	\
@@ -134,9 +134,9 @@ namespace vkz::mpl::function::parse {
 (																			\
 	template<																\
 		typename _VKZLIB_T_R, typename ..._VKZLIB_T_ARGS					\
-	> struct parse<VKZLIB_FUNCTION_POINTER_TYPE(							\
+	> struct _parse_impl<VKZLIB_FUNCTION_POINTER_TYPE(						\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG									\
-	)> : parse<VKZLIB_FUNCTION_SIGNATURE_TYPE(								\
+	)> : _parse_impl<VKZLIB_FUNCTION_SIGNATURE_TYPE(						\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG									\
 	)>																		\
 	{																		\
@@ -200,9 +200,9 @@ namespace vkz::mpl::function::parse {
 				VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG, Others					\
 			), _VKZLIB_T_ARGS...>											\
 		>																	\
-	struct parse<VKZLIB_STD_FUNCTION_LIKE_TYPE(								\
+	struct _parse_impl<VKZLIB_STD_FUNCTION_LIKE_TYPE(						\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG, Others							\
-	)> : parse<VKZLIB_FUNCTION_SIGNATURE_TYPE(								\
+	)> : _parse_impl<VKZLIB_FUNCTION_SIGNATURE_TYPE(						\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG									\
 	)>																		\
 	{																		\
@@ -240,9 +240,9 @@ namespace vkz::mpl::function::parse {
 	template<																		\
 		Class _VKZLIB_T_C,															\
 		typename _VKZLIB_T_R, typename ..._VKZLIB_T_ARGS							\
-	> struct parse<VKZLIB_MEMBER_FUNCTION_POINTER_TYPE(								\
+	> struct _parse_impl<VKZLIB_MEMBER_FUNCTION_POINTER_TYPE(						\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG											\
-	)> : parse<VKZLIB_FUNCTION_SIGNATURE_TYPE(										\
+	)> : _parse_impl<VKZLIB_FUNCTION_SIGNATURE_TYPE(								\
 		VAR_TAG, CV_TAG, REF_TAG, NOEX_TAG											\
 	)>																				\
 	{																				\
@@ -268,7 +268,7 @@ namespace vkz::mpl::function::parse {
 	// ============ Monomorphic Functor ============
 
 	template<MonomorphicFunctor L>
-	struct parse<L> : parse<decltype(&L::operator())> {
+	struct _parse_impl<L> : _parse_impl<decltype(&L::operator())> {
 		static constexpr auto _VKZLIB_P_T =
 			type::DirectInvocableType::MonomorphicFunctor;
 		using _VKZLIB_N_T = void;
@@ -277,11 +277,13 @@ namespace vkz::mpl::function::parse {
 	// ============ Forward qualified types ============
 
 	template<typename T>
-		requires (not std::same_as<std::remove_cvref_t<T>, T>)
-	struct parse<T> : parse<std::remove_cvref_t<T>> {
-		using _VKZLIB_N_T = std::enable_if_t<
-			parse<std::remove_cvref_t<T>>::value,
-			dup_cvref_t<T, typename parse<std::remove_cvref_t<T>>::_VKZLIB_N_T>>;
+	struct parse : _parse_impl<std::remove_cvref_t<T>> {};
+
+	template<typename T>
+		requires (_parse_impl<std::remove_cvref_t<T>>::value)
+	struct parse<T> : _parse_impl<std::remove_cvref_t<T>>
+	{
+		using _VKZLIB_N_T = dup_cvref_t<T, typename _parse_impl<std::remove_cvref_t<T>>::_VKZLIB_N_T>;
 	};
 
 #undef VKZLIB_FUNCTION_SIGNATURE_TYPE
