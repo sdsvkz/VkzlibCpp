@@ -907,14 +907,44 @@ namespace MplFunctionTest {
 #undef EXPECT_FN
 	}
 
-	TEST_F(HigherLevelUtilitiesTest, TestFnRef) {
-		auto pi = std::make_unique<int>(42);
-		using ReferencedLambda = decltype([&pi](int, float) -> void {
-			*pi = 1;
-		});
+	namespace TestFnRef {
+		constexpr float f(const int x, const float y) {
+			return static_cast<float>(x) + y;
+		}
+	}
 
-		printType<parse::args_of_t<ExpectedSignature>>("Expected parameter types (Packed): ");
-		printType<parse::args_of_t<ExpectedSignature>>("Expected return type: ");
-		std::printf("\n");
+	TEST_F(HigherLevelUtilitiesTest, TestFnRef) {
+		int a = 0;
+
+		auto g = [a](const int x, const float y) mutable {
+			++a;
+			return static_cast<float>(x) + y + static_cast<float>(a);
+		};
+		const std::function h {g};
+
+		// const auto i = g;
+
+		const FnRef refF {TestFnRef::f};
+		const FnRef refG {g};
+		const FnRef refH {h};
+		// const FnRef refI {i};
+		const FnRef refJ {[a](const int x, const float y) {
+			return static_cast<float>(x) + y + static_cast<float>(a);
+		}};
+
+		const auto resF = refF(114, 51.4);
+		const auto resG = refG(1, 1.4);
+		const auto resH = refH(5, 1.4);
+		// const auto resI = refI(1, 1.4);
+		const auto resJ = refJ(19, 1.9);
+
+		std::cout << "resF: " << resF << std::endl;
+		EXPECT_EQ(resF, static_cast<float>(114) + 51.4f);
+		std::cout << "resG: " << resG << std::endl;
+		EXPECT_EQ(resG, static_cast<float>(1) + 1.4f + static_cast<float>(1));
+		std::cout << "resH: " << resH << std::endl;
+		EXPECT_EQ(resH, static_cast<float>(5) + 1.4f + static_cast<float>(1));
+		std::cout << "resJ: " << resJ << std::endl;
+		EXPECT_EQ(resJ, static_cast<float>(19) + 1.9f);
 	}
 }
