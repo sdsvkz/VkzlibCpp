@@ -10,11 +10,13 @@ namespace vkz::mpl::function {
     /**
      * @brief Direct invocable type with same signature as `G`
      */
-    template<typename F, typename G, template <typename...> typename Pack = DefaultPack>
+    template<typename F, typename G,
+        template<typename...> typename FPack = DefaultPack,
+        template<typename...> typename GPack = DefaultPack>
     concept Fn =
         parse::type::DirectInvocable<F> &&
         SameResultAs<F, G> &&
-        SameArgsAs<F, G, Pack>;
+        SameArgsAs<F, G, FPack, GPack>;
 }
 
 #endif // VKZLIB_MPL_FUNCTION_FN_HPP
