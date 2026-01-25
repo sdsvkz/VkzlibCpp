@@ -7,7 +7,7 @@
 #include <vkzlib/mpl/function/Fn.hpp>
 
 namespace vkz::mpl::function {
-    template<bool CONST, bool MUTABLE, bool NOEX, typename R, typename... Args>
+    template<bool MUTABLE, bool NOEX, bool CONST, typename R, typename... Args>
     class _FnRef_impl {
     protected:
         using FType = std::conditional_t<CONST, const void *, void *>;
@@ -46,21 +46,21 @@ namespace vkz::mpl::function {
         }
     };
 
-    template <typename Signature, bool CONST, bool MUTABLE>
+    template <typename Signature, bool MUTABLE = false, bool CONST = true>
     class FnRef;
 
-    template<typename R, typename... Args, bool CONST, bool MUTABLE>
-    class FnRef<R(Args...), CONST, MUTABLE> : public _FnRef_impl<CONST, MUTABLE, false, R, Args...> {
-        using BaseClass = _FnRef_impl<CONST, MUTABLE, false, R, Args...>;
+    template<typename R, typename... Args, bool MUTABLE, bool CONST>
+    class FnRef<R(Args...), MUTABLE, CONST> : public _FnRef_impl<MUTABLE, false, CONST, R, Args...> {
+        using BaseClass = _FnRef_impl<MUTABLE, false, CONST, R, Args...>;
     public:
         template<Fn<R(Args...)> F>
         constexpr explicit FnRef(F &&f) noexcept
             : BaseClass(std::forward<F>(f)) {}
     };
 
-    template<typename R, typename... Args, bool CONST, bool MUTABLE>
-    class FnRef<R(Args...) noexcept, CONST, MUTABLE> : public _FnRef_impl<CONST, MUTABLE, true, R, Args...> {
-        using BaseClass = _FnRef_impl<CONST, MUTABLE, true, R, Args...>;
+    template<typename R, typename... Args, bool MUTABLE, bool CONST>
+    class FnRef<R(Args...) noexcept, MUTABLE, CONST> : public _FnRef_impl<MUTABLE, true, CONST, R, Args...> {
+        using BaseClass = _FnRef_impl<MUTABLE, true, CONST, R, Args...>;
     public:
         template<Fn<R(Args...)> F>
         constexpr explicit FnRef(F &&f) noexcept
@@ -70,8 +70,8 @@ namespace vkz::mpl::function {
     template<parse::Parsable F, template<typename...> typename Pack = DefaultPack>
     explicit FnRef(F &&f) -> FnRef<
         assemble_signature_t<parse::result_of_t<F>, parse::args_of_t<F, Pack>>,
-        std::is_const_v<std::remove_reference_t<F>>,
-        parse::type::MonomorphicFunctor<F> && parse::property::NonCV<F>>;
+        parse::type::MonomorphicFunctor<F> && parse::property::NonCV<F>,
+        std::is_const_v<std::remove_reference_t<F>>>;
 }
 
 #endif // VKZLIB_MPL_FUNCTION_FNREF_HPP

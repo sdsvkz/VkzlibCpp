@@ -1,3 +1,4 @@
+#include <cmath>
 #include <functional>
 #include <memory>
 
@@ -911,6 +912,24 @@ namespace MplFunctionTest {
 		constexpr float f(const int x, const float y) {
 			return static_cast<float>(x) + y;
 		}
+
+		struct Wrapper {
+			int value;
+		};
+
+		template<Fn<Wrapper(const Wrapper &)> F>
+		Wrapper modify(F &&f, const Wrapper &x) {
+			const FnRef<Wrapper(const Wrapper &), true, false> _f { std::forward<F>(f) };
+			const auto res = _f(x);
+			return res;
+		}
+
+		template<Fn<int()> F>
+		int invokeChange(F &&f) {
+			const FnRef<int()> _f { std::forward<F>(f) };
+			const auto res = _f();
+			return res;
+		}
 	}
 
 	TEST_F(HigherLevelUtilitiesTest, TestFnRef) {
@@ -946,5 +965,27 @@ namespace MplFunctionTest {
 		EXPECT_EQ(resH, static_cast<float>(5) + 1.4f + static_cast<float>(1));
 		std::cout << "resJ: " << resJ << std::endl;
 		EXPECT_EQ(resJ, static_cast<float>(19) + 1.9f);
+
+		using TestFnRef::Wrapper;
+		using TestFnRef::modify;
+
+		constexpr Wrapper wa { 3 };
+		const auto [wbval] = modify([](const Wrapper &x) {
+			return Wrapper { x.value * x.value + x.value };
+		}, wa);
+		std::cout << "wb.value: " << wbval << std::endl;
+		EXPECT_EQ(wbval, 12);
+
+		using TestFnRef::invokeChange;
+
+		Wrapper wc { 1 };
+		const auto modifyX = [&wc]() {
+			constexpr int VALUE = 5;
+			wc.value = VALUE;
+			return VALUE;
+		};
+		const auto changedX = invokeChange(modifyX);
+		std::cout << "wc.value: " << wc.value << std::endl;
+		EXPECT_EQ(wc.value, changedX);
 	}
 }

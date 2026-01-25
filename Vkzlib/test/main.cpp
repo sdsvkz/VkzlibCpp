@@ -8,8 +8,6 @@
 
 #include <common.hpp>
 
-using namespace ::vkz::mpl;
-
 TEST(UseTest, TestMain) {
 
 }
