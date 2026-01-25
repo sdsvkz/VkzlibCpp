@@ -58,11 +58,35 @@ namespace vkz::mpl::tpl::fst {
     /**
      * @brief N-th type applied to template, starts from 0
      *
+     * Member types:
+     * - type
+     *
+     * @note Requires at least 1 template parameter applied to P
+     */
+    template<Size N, typename P>
+    struct nth_tparam_of {};
+
+    /**
+     * @brief N-th type applied to template, starts from 0
+     *
+     * Member types:
+     * - type
+     *
+     * @note Requires at least 1 template parameter applied to P
+     */
+    template<Size N, TemplateSpec P>
+    struct nth_tparam_of<N, P> {
+        using type = _detail::_parse_template_spec<P>::template At<N>;
+    };
+
+    /**
+     * @brief N-th type applied to template, starts from 0
+     *
      * @note Requires at least 1 template parameter applied to P
      */
     template<Size N, TemplateSpec P>
         requires (tparam_count_v<P> > 0)
-    using nth_tparam_of_t = _detail::_parse_template_spec<P>::template At<N>;
+    using nth_tparam_of_t = nth_tparam_of<N, P>::type;
 }
 
 #endif // VKZLIB_MPL_TPL_FST_PARSE_TEMPLATE_SPEC_HPP
