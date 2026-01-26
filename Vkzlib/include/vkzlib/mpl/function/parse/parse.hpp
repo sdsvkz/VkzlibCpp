@@ -289,6 +289,23 @@ namespace vkz::mpl::function::parse {
 #undef VKZLIB_FUNCTION_SIGNATURE_TYPE
 #undef VKZLIB_PARSER_TRAIT_SPEC_BODY_COMMON
 
+#undef _VKZLIB_T_PACK
+#undef _VKZLIB_T_ARGS
+#undef _VKZLIB_T_R
+#undef _VKZLIB_T_C
+#undef _VKZLIB_T_F
+#undef _VKZLIB_T_L
+#undef _VKZLIB_NOEX
+#undef _VKZLIB_REF
+#undef _VKZLIB_CV
+#undef _VKZLIB_VAR
+#undef _VKZLIB_ARGS_PACK_T
+#undef _VKZLIB_R_T
+#undef _VKZLIB_N_T
+#undef _VKZLIB_F_T
+#undef _VKZLIB_C_T
+#undef _VKZLIB_P_T
+
 }
 
 #endif // VKZLIB_MPL_FUNCTION_PARSE_PARSE_HPP
