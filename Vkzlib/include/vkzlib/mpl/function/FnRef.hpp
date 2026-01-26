@@ -69,7 +69,10 @@ namespace vkz::mpl::function {
 
     template<parse::Parsable F, template<typename...> typename Pack = DefaultPack>
     explicit FnRef(F &&f) -> FnRef<
-        assemble_signature_t<parse::result_of_t<F>, parse::args_of_t<F, Pack>>,
+        assemble_signature_t<
+            parse::result_of_t<F>,
+            parse::args_of_t<F, Pack>,
+            parse::exception_qualifier_of<F>>,
         parse::type::MonomorphicFunctor<F> && parse::property::NonCV<F>,
         std::is_const_v<std::remove_reference_t<F>>>;
 }

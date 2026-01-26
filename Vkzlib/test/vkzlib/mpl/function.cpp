@@ -930,6 +930,13 @@ namespace MplFunctionTest {
 			const auto res = _f();
 			return res;
 		}
+
+		template<typename T>
+		T calc(const FnRef<T(T) noexcept> &f, T x) {
+			std::printf("f: %s\n", typeid(decltype(f)).name());
+			const auto res = f(x);
+			return res;
+		}
 	}
 
 	TEST_F(HigherLevelUtilitiesTest, TestFnRef) {
@@ -970,22 +977,34 @@ namespace MplFunctionTest {
 		using TestFnRef::modify;
 
 		constexpr Wrapper wa { 3 };
-		const auto [wbval] = modify([](const Wrapper &x) {
+		const auto [wavalModified] = modify([](const Wrapper &x) {
 			return Wrapper { x.value * x.value + x.value };
 		}, wa);
-		std::cout << "wb.value: " << wbval << std::endl;
-		EXPECT_EQ(wbval, 12);
+		std::cout << "(wa.value = " << wa.value << "): wa.value * wa.value + wa.value = " << wavalModified << std::endl;
+		EXPECT_EQ(wavalModified, 12);
 
 		using TestFnRef::invokeChange;
 
-		Wrapper wc { 1 };
-		const auto modifyX = [&wc]() {
+		constexpr int WB_VAL = 1;
+		Wrapper wb { 1 };
+		const auto modifyX = [&wb]() {
 			constexpr int VALUE = 5;
-			wc.value = VALUE;
+			wb.value = VALUE;
 			return VALUE;
 		};
 		const auto changedX = invokeChange(modifyX);
-		std::cout << "wc.value: " << wc.value << std::endl;
-		EXPECT_EQ(wc.value, changedX);
+		std::cout << "wb.value: " << wb.value << std::endl;
+		EXPECT_EQ(wb.value, changedX);
+		constexpr Wrapper wc { 6 };
+		constexpr Wrapper wd { 7 };
+		const auto mod4 = [](const Wrapper wx) noexcept {
+			return Wrapper { wx.value % 4 };
+		};
+		const auto [wcMod4] = TestFnRef::calc(FnRef { mod4 }, wc);
+		const auto [wdMod4] = TestFnRef::calc(FnRef { mod4 }, wd);
+		std::cout << "wc.value % 4 = " << wc.value << " % 4 = " << wcMod4 << std::endl;
+		EXPECT_EQ(wcMod4, wc.value % 4);
+		std::cout << "wd.value % 4 = " << wd.value << " % 4 = " << wdMod4 << std::endl;
+		EXPECT_EQ(wdMod4, wd.value % 4);
 	}
 }
