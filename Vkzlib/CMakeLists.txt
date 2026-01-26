@@ -127,8 +127,10 @@ install(
     FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-install(
-    EXPORT vkzlibTargets
-    NAMESPACE vkzlib::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/vkzlib
-)
+if (VKZLIB_EXPORT_TARGETS)
+  install(
+      EXPORT vkzlibTargets
+      NAMESPACE vkzlib::
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/vkzlib
+  )
+endif ()

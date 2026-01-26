@@ -11,6 +11,8 @@ endif()
 
 project("Vkzlib" LANGUAGES CXX)
 
+option(VKZLIB_EXPORT_TARGETS "Export cmake targets" ON)
+
 # Unused
 option(VKZLIB_USE_MODULES "Build vkzlib as a C++20 module" OFF)
 
