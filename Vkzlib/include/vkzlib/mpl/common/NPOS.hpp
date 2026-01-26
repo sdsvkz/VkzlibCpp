@@ -1,7 +1,7 @@
 #ifndef VKZLIB_COMMON_NPOS_HPP
 #define VKZLIB_COMMON_NPOS_HPP
 
-#include <numeric>
+#include <limits>
 
 #include <vkzlib/mpl/common/Size.hpp>
 
